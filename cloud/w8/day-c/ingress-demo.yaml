@@ -1,0 +1,32 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: xbrain-ingress
+  namespace: default
+  annotations:
+    # NGINX Ingress Controller specific settings
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  # Cấu hình các quy tắc định tuyến dựa trên Host
+  rules:
+    - host: xbrain.local
+      http:
+        paths:
+          # Đường dẫn gốc (Frontend)
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: web-app-service
+                port:
+                  number: 80
+                  
+          # Đường dẫn /api (Giả định định tuyến đến backend - ở đây chuyển tiếp demo vào cùng web service)
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: web-app-service
+                port:
+                  number: 80

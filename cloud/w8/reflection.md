@@ -34,10 +34,11 @@
 
 ### 3. Lab "Mini K8s platform trên Minikube" (Day C & Lab - Thứ 5 & Thứ 6)
 *   **Mô tả Lab:**
-    *   Xây dựng nền tảng K8s tối giản trên minikube local.
-*   **Kết quả đạt được (Show-and-tell):**
-    *   ...
-*   **Kết quả Online Test 2:** [Điền điểm hoặc đánh giá ở đây]
+    *   Xây dựng nền tảng K8s 3-Tier Microservices hoàn chỉnh gồm Frontend (Nginx), Backend (API Echo App), và Database (PostgreSQL) có Persistent Volume lưu trữ bền vững.
+    *   Sử dụng Ingress Controller định tuyến thông minh dựa trên Host/Path và áp dụng tường lửa bảo mật Zero-Trust bằng NetworkPolicy cách ly 3 lớp.
+*   **Kết quả đạt được (Show-and-tell):** Đã thiết lập thành công toàn bộ mã nguồn manifest (`db-tier.yaml`, `backend-tier.yaml`, `frontend-tier.yaml`, `ingress-routing.yaml`, `network-policies.yaml`) và cẩm nang hướng dẫn chạy Lab, sẵn sàng cho buổi thực hành Onsite tại Đà Nẵng và thuyết trình Show-and-tell trước nhóm.
+*   **Kết quả Online Test 2:** [Điền điểm sau khi hoàn thành bài test 2 ở đây]
+
 
 ---
 

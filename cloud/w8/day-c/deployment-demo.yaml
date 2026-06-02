@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-app-deployment
+  namespace: default
+  labels:
+    app: my-web-app
+    tier: frontend
+spec:
+  replicas: 3 # Khởi chạy 3 bản sao của Pod để đảm bảo tính sẵn sàng cao và cân bằng tải
+  
+  # Selector dùng để nhận diện và quản lý các Pod do Deployment này tạo ra
+  selector:
+    matchLabels:
+      app: my-web-app
+      tier: frontend
+      
+  # Chiến lược deploy cập nhật không gây gián đoạn (Zero-Downtime Deployment)
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1        # Cho phép tạo thêm tối đa 1 Pod mới vượt mức (tổng 4) trong khi deploy
+      maxUnavailable: 0  # Đảm bảo không có Pod nào bị offline trong quá trình cập nhật
+      
+  # Bản thiết kế chi tiết cho từng Pod (Pod Template)
+  template:
+    metadata:
+      labels:
+        app: my-web-app
+        tier: frontend
+    spec:
+      containers:
+        - name: web-container
+          image: nginx:1.25-alpine
+          ports:
+            - containerPort: 80
+            
+          # Tài nguyên là điều kiện bắt buộc để HPA có thể tự động co giãn
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "64Mi"
+            limits:
+              cpu: "200m"
+              memory: "128Mi"
+              
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-app-service
+  namespace: default
+spec:
+  type: ClusterIP # Chỉ truy cập nội bộ, Ingress sẽ đứng trước định tuyến vào đây
+  selector:
+    app: my-web-app
+    tier: frontend
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
