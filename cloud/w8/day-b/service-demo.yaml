@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-service-clusterip
+  namespace: default
+  labels:
+    app: my-web-app
+    tier: frontend
+spec:
+  type: ClusterIP # Chỉ truy cập được từ bên trong cluster
+  selector:
+    app: my-web-app
+    tier: frontend
+  ports:
+    - name: http
+      port: 80         # Port của Service
+      targetPort: 80   # Port của Container trong Pod
+      protocol: TCP
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-service-nodeport
+  namespace: default
+  labels:
+    app: my-web-app
+    tier: frontend
+spec:
+  type: NodePort # Mở port trên mọi Node để truy cập từ ngoài cluster
+  selector:
+    app: my-web-app
+    tier: frontend
+  ports:
+    - name: http
+      port: 80         # Port của Service
+      targetPort: 80   # Port của Container trong Pod
+      nodePort: 32080  # Port tĩnh mở trên Node (phạm vi 30000-32767)
+      protocol: TCP
