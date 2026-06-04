@@ -19,7 +19,7 @@ Dưới đây là bảng đối chiếu các yêu cầu bắt buộc của đề
 | **4** | App truy cập được từ **Internet qua ALB** | **ĐẠT** | ALB lắng nghe cổng 80 công cộng và forward traffic vào cổng NodePort `30080` của EC2 được ánh xạ từ Pod. |
 | **5** | **Một lệnh** để dựng tất cả (1-click) | **ĐẠT** | Chỉ chạy duy nhất lệnh `terraform apply -auto-approve` để khởi tạo tự động toàn bộ từ đầu đến cuối. |
 | **6** | Có dùng **$\ge 2$ provider** (wire provider khác) | **ĐẠT** | Sử dụng **4 providers**: `aws`, `tls` (sinh SSH Key), `local` (ghi file `.pem`), và `kubernetes` (triển khai app). |
-| **7** | Dọn được sạch (**destroy**) sau khi xong | **ĐẠT** | Chạy lệnh `terraform destroy -auto-approve` để xóa sạch toàn bộ 14 tài nguyên tránh tốn phí. |
+| **7** | Dọn được sạch (**destroy**) sau khi xong | **ĐẠT** | Chạy lệnh `terraform destroy -auto-approve` để xóa sạch toàn bộ 22 tài nguyên tránh tốn phí. |
 
 ---
 
@@ -58,11 +58,11 @@ Lệnh khởi tạo tải thành công cả 4 providers cần thiết về local
 ---
 
 ### 2. Xem Kế hoạch Triển khai (`terraform plan`)
-Terraform xây dựng thành công đồ thị phụ thuộc và báo cáo sẽ tạo mới 14 tài nguyên.
+Terraform xây dựng thành công đồ thị phụ thuộc và báo cáo sẽ tạo mới 22 tài nguyên.
 
 * **Minh chứng thực tế**:
 
-![Screenshot 2: Kết quả chạy lệnh terraform plan hiển thị 14 tài nguyên cần tạo](assets/tf_plan.png)
+![Screenshot 2: Kết quả chạy lệnh terraform plan hiển thị 22 tài nguyên cần tạo](assets/tf_plan.png)
 
 ---
 
