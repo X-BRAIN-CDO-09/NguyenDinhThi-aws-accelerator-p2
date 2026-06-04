@@ -1,0 +1,297 @@
+# =============================================================================
+# BƯỚC 1: DATABASE TIER — PostgreSQL
+# =============================================================================
+# Mục tiêu: Tạo 4 resource theo đúng thứ tự sau:
+#   1. Secret        → lưu mật khẩu DB (mã hóa base64)
+#   2. PersistentVolume (PV)  → vùng lưu trữ vật lý trên máy host
+#   3. PersistentVolumeClaim (PVC) → "xin cấp" vùng lưu trữ từ PV
+#   4. Deployment    → chạy container PostgreSQL
+#   5. Service       → expose PostgreSQL ra trong cluster (ClusterIP)
+#
+# Syntax cơ bản của 1 Kubernetes manifest:
+#   apiVersion: <group/version>   ← phiên bản API của resource
+#   kind: <ResourceType>          ← loại resource
+#   metadata:                     ← thông tin định danh
+#     name: <tên>
+#     labels:                     ← nhãn dùng để selector tìm
+#       key: value
+#   spec:                         ← đặc tả chi tiết (tùy theo kind)
+#     ...
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# RESOURCE 1: Secret
+# Dùng để lưu POSTGRES_PASSWORD dạng mã hóa base64
+# Cách tạo giá trị base64:
+#   Windows PowerShell: [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("mypassword"))
+#   Linux/Mac:          echo -n "mypassword" | base64
+# Kết quả của "mypassword" → bWFzcGFzc3dvcmQ=  (KHÔNG dùng kết quả này, tự generate!)
+# -----------------------------------------------------------------------------
+
+# TODO 1.1: Điền apiVersion đúng cho Secret
+# Gợi ý: Secret thuộc core API group → apiVersion là "v1"
+apiVersion: # ← ĐIỀN VÀO ĐÂY
+
+# TODO 1.2: Điền kind là "Secret"
+kind: # ← ĐIỀN VÀO ĐÂY
+
+metadata:
+  # TODO 1.3: Đặt name là "postgres-secret"
+  name: # ← ĐIỀN VÀO ĐÂY
+  labels:
+    tier: database
+
+# TODO 1.4: Chọn type đúng cho secret chứa dữ liệu thô
+# Gợi ý: type là "Opaque" (dùng cho dữ liệu tuỳ ý, không phải TLS hay registry)
+type: # ← ĐIỀN VÀO ĐÂY
+
+data:
+  # TODO 1.5: Thêm key POSTGRES_PASSWORD với value là chuỗi base64 của mật khẩu bạn chọn
+  # Ví dụ cấu trúc:
+  #   POSTGRES_PASSWORD: <chuỗi_base64_của_mật_khẩu>
+  # ← ĐIỀN VÀO ĐÂY
+
+
+---
+# Dấu "---" ngăn cách giữa các resource trong cùng 1 file YAML
+
+# -----------------------------------------------------------------------------
+# RESOURCE 2: PersistentVolume (PV)
+# Đây là "ổ cứng ảo" được cấp phát sẵn bởi admin.
+# Trong lab local dùng hostPath (mount thư mục trực tiếp từ máy host).
+# Trong production thực tế sẽ dùng AWS EBS, GCP PD, Azure Disk, v.v.
+# -----------------------------------------------------------------------------
+
+# TODO 1.6: Điền apiVersion cho PersistentVolume
+# Gợi ý: PV thuộc core API → "v1"
+apiVersion: # ← ĐIỀN VÀO ĐÂY
+
+# TODO 1.7: Điền kind là "PersistentVolume"
+kind: # ← ĐIỀN VÀO ĐÂY
+
+metadata:
+  name: postgres-pv
+  labels:
+    tier: database
+
+spec:
+  # TODO 1.8: Điền dung lượng lưu trữ
+  # Cấu trúc:
+  #   capacity:
+  #     storage: <số><đơn_vị>   ← ví dụ: 1Gi (1 GiB), 500Mi
+  capacity:
+    storage: # ← ĐIỀN VÀO ĐÂY (gợi ý: 1Gi)
+
+  # TODO 1.9: Điền accessModes — cách Pod có thể mount volume
+  # Các loại:
+  #   - ReadWriteOnce (RWO): chỉ 1 Node mount được, phù hợp với DB
+  #   - ReadOnlyMany  (ROX): nhiều Node đọc được
+  #   - ReadWriteMany (RWX): nhiều Node đọc + ghi (cần NFS/EFS)
+  accessModes:
+    - # ← ĐIỀN VÀO ĐÂY (gợi ý: ReadWriteOnce)
+
+  # TODO 1.10: Chọn reclaimPolicy
+  # Retain → giữ lại data khi PVC bị xóa (an toàn cho production)
+  # Delete → xóa data khi PVC bị xóa
+  persistentVolumeReclaimPolicy: # ← ĐIỀN VÀO ĐÂY (gợi ý: Retain)
+
+  # TODO 1.11: Điền loại storage và đường dẫn host
+  # Cấu trúc cho hostPath (chỉ dùng trong local/minikube):
+  #   hostPath:
+  #     path: /mnt/data/postgres   ← đường dẫn trên NODE (bên trong VM minikube)
+  hostPath:
+    path: # ← ĐIỀN VÀO ĐÂY (gợi ý: /mnt/data/postgres)
+
+
+---
+# -----------------------------------------------------------------------------
+# RESOURCE 3: PersistentVolumeClaim (PVC)
+# Đây là "yêu cầu cấp storage" từ phía ứng dụng.
+# K8s sẽ tìm PV phù hợp và "bind" (gắn kết) PVC vào PV đó.
+# Điều kiện bind: dung lượng PV >= dung lượng PVC, accessModes phải khớp.
+# -----------------------------------------------------------------------------
+
+# TODO 1.12: Điền apiVersion và kind cho PVC
+apiVersion: # ← ĐIỀN VÀO ĐÂY
+kind: # ← ĐIỀN VÀO ĐÂY (gợi ý: PersistentVolumeClaim)
+
+metadata:
+  name: postgres-pvc
+  labels:
+    tier: database
+
+spec:
+  # TODO 1.13: accessModes phải khớp với PV
+  accessModes:
+    - # ← ĐIỀN VÀO ĐÂY (phải giống TODO 1.9)
+
+  resources:
+    requests:
+      # TODO 1.14: Yêu cầu dung lượng (phải <= capacity của PV)
+      storage: # ← ĐIỀN VÀO ĐÂY (gợi ý: 1Gi)
+
+
+---
+# -----------------------------------------------------------------------------
+# RESOURCE 4: Deployment — PostgreSQL
+# Deployment quản lý việc tạo và duy trì các Pod chạy PostgreSQL.
+# Nó wrap ReplicaSet bên dưới để hỗ trợ rolling update.
+#
+# Cấu trúc Deployment:
+#   spec:
+#     replicas: <số Pod>
+#     selector:             ← Deployment tìm Pod của mình bằng selector này
+#       matchLabels:
+#         <key>: <value>
+#     template:             ← "khuôn mẫu" để tạo Pod
+#       metadata:
+#         labels:
+#           <key>: <value>  ← PHẢI khớp với selector.matchLabels
+#       spec:
+#         containers:
+#           - name: <tên_container>
+#             image: <image>:<tag>
+#             ...
+# -----------------------------------------------------------------------------
+
+# TODO 1.15: Điền apiVersion cho Deployment
+# Gợi ý: Deployment thuộc group "apps" → "apps/v1"
+apiVersion: # ← ĐIỀN VÀO ĐÂY
+
+kind: Deployment
+
+metadata:
+  name: postgres-deployment
+  labels:
+    tier: database
+
+spec:
+  # TODO 1.16: Số lượng replicas (DB thường chỉ cần 1)
+  replicas: # ← ĐIỀN VÀO ĐÂY
+
+  selector:
+    matchLabels:
+      # TODO 1.17: Điền label dùng để tìm Pod (phải khớp template.metadata.labels bên dưới)
+      app: postgres
+      tier: # ← ĐIỀN VÀO ĐÂY
+
+  template:
+    metadata:
+      labels:
+        # TODO 1.18: Labels này PHẢI KHỚP với selector.matchLabels ở trên
+        app: postgres
+        tier: # ← ĐIỀN VÀO ĐÂY
+
+    spec:
+      containers:
+        - name: postgres
+          # TODO 1.19: Điền image PostgreSQL (khuyến nghị dùng tag cụ thể, không dùng latest)
+          image: # ← ĐIỀN VÀO ĐÂY (gợi ý: postgres:15)
+
+          ports:
+            - containerPort: 5432
+
+          # TODO 1.20: Nạp biến môi trường POSTGRES_PASSWORD từ Secret
+          # Cấu trúc:
+          #   env:
+          #     - name: POSTGRES_PASSWORD    ← tên biến môi trường trong container
+          #       valueFrom:
+          #         secretKeyRef:
+          #           name: <tên_secret>     ← tên Secret đã tạo ở Resource 1
+          #           key: <tên_key>         ← key bên trong Secret
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: # ← ĐIỀN VÀO ĐÂY (tên secret từ TODO 1.3)
+                  key: # ← ĐIỀN VÀO ĐÂY (tên key từ TODO 1.5)
+
+            # TODO 1.21: Thêm biến POSTGRES_DB để tạo database mặc định
+            # Cấu trúc dùng giá trị cố định (không cần Secret):
+            #   - name: POSTGRES_DB
+            #     value: "myappdb"
+            - name: POSTGRES_DB
+              value: # ← ĐIỀN VÀO ĐÂY (đặt tên DB bạn muốn)
+
+          # TODO 1.22: Mount PVC vào đường dẫn data của PostgreSQL
+          # Cấu trúc:
+          #   volumeMounts:
+          #     - name: <tên_volume>           ← phải khớp với volumes[].name bên dưới
+          #       mountPath: /var/lib/postgresql/data
+          volumeMounts:
+            - name: postgres-storage
+              mountPath: # ← ĐIỀN VÀO ĐÂY (gợi ý: /var/lib/postgresql/data)
+
+          # TODO 1.23: Cấu hình resource limits (quan trọng để tránh Pod ăn hết RAM)
+          # Cấu trúc:
+          #   resources:
+          #     requests:           ← tài nguyên tối thiểu cần có để schedule Pod
+          #       memory: "256Mi"
+          #       cpu: "250m"       ← 250m = 0.25 CPU core
+          #     limits:             ← tài nguyên tối đa Pod được dùng
+          #       memory: "512Mi"
+          #       cpu: "500m"
+          resources:
+            requests:
+              memory: # ← ĐIỀN VÀO ĐÂY
+              cpu: # ← ĐIỀN VÀO ĐÂY
+            limits:
+              memory: # ← ĐIỀN VÀO ĐÂY
+              cpu: # ← ĐIỀN VÀO ĐÂY
+
+      volumes:
+        # TODO 1.24: Khai báo volume dùng PVC đã tạo
+        # Cấu trúc:
+        #   - name: <tên_volume>       ← tên này được tham chiếu trong volumeMounts
+        #     persistentVolumeClaim:
+        #       claimName: <tên_pvc>   ← tên PVC đã tạo ở Resource 3
+        - name: postgres-storage
+          persistentVolumeClaim:
+            claimName: # ← ĐIỀN VÀO ĐÂY (tên PVC từ TODO 1.12)
+
+
+---
+# -----------------------------------------------------------------------------
+# RESOURCE 5: Service — ClusterIP cho PostgreSQL
+# Service tạo ra 1 DNS name ổn định để các Pod khác kết nối đến PostgreSQL.
+# Dù Pod DB bị tạo lại (IP thay đổi), Service vẫn giữ nguyên DNS và IP ảo.
+#
+# Cấu trúc Service:
+#   spec:
+#     selector:           ← Service forward traffic đến Pod có label này
+#       <key>: <value>
+#     ports:
+#       - protocol: TCP
+#         port: <port_của_service>        ← port bên ngoài service lắng nghe
+#         targetPort: <port_của_container> ← port trong container
+#     type: <ClusterIP|NodePort|LoadBalancer>
+# -----------------------------------------------------------------------------
+
+apiVersion: v1
+kind: Service
+
+metadata:
+  # TODO 1.25: Đặt tên Service này là "postgres-service"
+  # ⚠️ Tên này sẽ là DNS hostname để backend kết nối:
+  #    postgres://postgres-service:5432/myappdb
+  name: # ← ĐIỀN VÀO ĐÂY
+  labels:
+    tier: database
+
+spec:
+  selector:
+    # TODO 1.26: Chọn đúng các Pod cần forward traffic đến
+    # Phải khớp với labels của Pod postgres (template.metadata.labels)
+    app: # ← ĐIỀN VÀO ĐÂY
+    tier: # ← ĐIỀN VÀO ĐÂY
+
+  ports:
+    - protocol: TCP
+      # TODO 1.27: Điền port của Service (port mà các service khác dùng để kết nối)
+      port: # ← ĐIỀN VÀO ĐÂY (PostgreSQL mặc định là 5432)
+      # TODO 1.28: Điền targetPort (port mà container PostgreSQL thực sự lắng nghe)
+      targetPort: # ← ĐIỀN VÀO ĐÂY
+
+  # TODO 1.29: Chọn loại Service
+  # ClusterIP → chỉ truy cập được từ bên trong cluster (đúng cho DB)
+  type: # ← ĐIỀN VÀO ĐÂY

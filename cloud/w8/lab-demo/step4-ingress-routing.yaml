@@ -1,0 +1,126 @@
+# =============================================================================
+# BƯỚC 4: INGRESS ROUTING
+# =============================================================================
+# Mục tiêu: Tạo 1 Ingress resource định tuyến traffic HTTP dựa vào path:
+#   http://mini-platform.local/     → frontend-service:80
+#   http://mini-platform.local/api  → backend-service:80
+#
+# Ingress vs NodePort/LoadBalancer:
+# ┌─────────────┬────────────────────────────────────────────────────────┐
+# │ NodePort    │ Mở port ngẫu nhiên (30000-32767) trên mỗi Node        │
+# │             │ → Không đẹp: http://192.168.49.2:31234               │
+# ├─────────────┼────────────────────────────────────────────────────────┤
+# │ LoadBalancer│ Tạo Cloud LB riêng cho MỖI service → Tốn tiền        │
+# │             │ (Không hoạt động trên local minikube mặc định)        │
+# ├─────────────┼────────────────────────────────────────────────────────┤
+# │ Ingress     │ 1 LB duy nhất, route nhiều service bằng path/host    │
+# │             │ → http://mini-platform.local/api → backend            │
+# │             │ → http://mini-platform.local/    → frontend           │
+# └─────────────┴────────────────────────────────────────────────────────┘
+#
+# Cấu trúc đầy đủ của Ingress:
+#   apiVersion: networking.k8s.io/v1
+#   kind: Ingress
+#   metadata:
+#     name: <tên>
+#     annotations:                  ← các thiết lập bổ sung cho Ingress Controller
+#       nginx.ingress.kubernetes.io/rewrite-target: /
+#   spec:
+#     ingressClassName: nginx       ← chỉ định dùng NGINX Ingress Controller
+#     rules:
+#       - host: <domain>            ← domain name (nếu bỏ qua = match tất cả host)
+#         http:
+#           paths:
+#             - path: /api          ← URL path
+#               pathType: Prefix    ← Prefix = khớp tất cả path bắt đầu bằng /api
+#               backend:
+#                 service:
+#                   name: backend-service    ← tên Service
+#                   port:
+#                     number: 80             ← port của Service
+# =============================================================================
+
+# TODO 4.1: Điền apiVersion cho Ingress
+# ⚠️ Ingress KHÔNG thuộc core API hay apps group!
+# Gợi ý: Ingress thuộc networking group → "networking.k8s.io/v1"
+apiVersion: # ← ĐIỀN VÀO ĐÂY
+
+# TODO 4.2: Điền kind là "Ingress"
+kind: # ← ĐIỀN VÀO ĐÂY
+
+metadata:
+  name: mini-platform-ingress
+
+  # Annotations cho NGINX Ingress Controller
+  # rewrite-target: "/" → khi nhận request /api/..., forward đến backend như /
+  # Tức là: http://mini-platform.local/api → backend nhận request "/"
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+
+spec:
+  # TODO 4.3: Chỉ định Ingress Controller
+  # Khi minikube enable ingress addon, nó cài NGINX Ingress Controller
+  # với className là "nginx"
+  ingressClassName: # ← ĐIỀN VÀO ĐÂY (gợi ý: nginx)
+
+  rules:
+    # TODO 4.4: Cấu hình routing rule cho domain mini-platform.local
+    - host: # ← ĐIỀN VÀO ĐÂY (gợi ý: mini-platform.local)
+      http:
+        paths:
+          # ROUTE 1: /api → Backend Service
+          # TODO 4.5: Điền path cho Backend
+          - path: # ← ĐIỀN VÀO ĐÂY (gợi ý: /api)
+
+            # TODO 4.6: Chọn pathType
+            # Prefix → match tất cả URL bắt đầu bằng path này
+            # Exact  → chỉ match đúng URL đó
+            pathType: # ← ĐIỀN VÀO ĐÂY (gợi ý: Prefix)
+
+            backend:
+              service:
+                # TODO 4.7: Điền tên Backend Service (phải CHÍNH XÁC với tên service trong step2)
+                name: # ← ĐIỀN VÀO ĐÂY (gợi ý: backend-service)
+                port:
+                  # TODO 4.8: Port của Backend Service
+                  number: # ← ĐIỀN VÀO ĐÂY (gợi ý: 80)
+
+          # ROUTE 2: / → Frontend Service
+          # TODO 4.9: Điền path cho Frontend (root path)
+          - path: # ← ĐIỀN VÀO ĐÂY (gợi ý: /)
+
+            # TODO 4.10: pathType cho root path
+            pathType: # ← ĐIỀN VÀO ĐÂY (gợi ý: Prefix)
+
+            backend:
+              service:
+                # TODO 4.11: Điền tên Frontend Service (phải CHÍNH XÁC với tên service trong step3)
+                name: # ← ĐIỀN VÀO ĐÂY (gợi ý: frontend-service)
+                port:
+                  # TODO 4.12: Port của Frontend Service
+                  number: # ← ĐIỀN VÀO ĐÂY (gợi ý: 80)
+
+# =============================================================================
+# SAU KHI APPLY FILE NÀY, LÀM THÊM CÁC BƯỚC SAU:
+# =============================================================================
+#
+# 1. Kiểm tra Ingress đã nhận được IP chưa (có thể mất 1-2 phút):
+#    kubectl get ingress -w
+#    → Mong đợi cột ADDRESS có IP (ví dụ: 192.168.49.2)
+#
+# 2. Lấy IP của minikube:
+#    minikube ip
+#
+# 3. Thêm vào file hosts (chạy Notepad as Administrator):
+#    Windows: C:\Windows\System32\drivers\etc\hosts
+#    Thêm dòng: <MINIKUBE_IP>  mini-platform.local
+#    Ví dụ:    192.168.49.2   mini-platform.local
+#
+# 4. Kiểm tra truy cập:
+#    - http://mini-platform.local        → phải thấy trang HTML từ Frontend
+#    - http://mini-platform.local/api    → phải thấy text từ Backend
+#
+# 5. Debug nếu có lỗi:
+#    kubectl describe ingress mini-platform-ingress
+#    kubectl get pods -n ingress-nginx    ← kiểm tra Ingress Controller còn sống không
+# =============================================================================

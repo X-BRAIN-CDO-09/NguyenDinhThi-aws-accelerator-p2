@@ -1,0 +1,324 @@
+# =============================================================================
+# LAB 3 - DEPLOYMENT (YAML)
+# Khai báo bằng file & apply
+# =============================================================================
+# Mục tiêu: Tạo Deployment chạy nginx với 3 Pod, apply lên Minikube.
+#
+# Cách tạo file và apply:
+#   kubectl apply -f web.yaml
+#   kubectl get deploy,rs,pods
+#
+# Output mong đợi sau khi apply:
+#   deployment.apps/web        3/3
+#   replicaset.apps/web-5d8c   3
+#   pod/web-5d8c-aa   Running
+#   pod/web-5d8c-bb   Running
+#   pod/web-5d8c-cc   Running
+#
+# 💡 Declarative: web.yaml là nguồn sự thật.
+#    Muốn đổi gì → sửa file → apply lại.
+#    Thấy đúng phả hệ Deploy → RS → Pod như slide lý thuyết.
+# =============================================================================
+
+# TODO 1: Điền apiVersion cho Deployment
+# Deployment thuộc group "apps" → apps/v1
+apiVersion: apps/v1 # ← ĐIỀN VÀO ĐÂY (gợi ý: apps/v1)
+
+# TODO 2: Điền kind
+kind: Deployment # ← ĐIỀN VÀO ĐÂY (gợi ý: Deployment)
+
+# TODO 3: Điền metadata name
+# Tên này sẽ xuất hiện trong: deployment.apps/<name>
+metadata: {name: web} # ← ĐIỀN VÀO ĐÂY (gợi ý: web)
+
+spec:
+  # TODO 4: Điền số replicas (số Pod muốn chạy)
+  replicas: 5 # ← ĐIỀN VÀO ĐÂY (gợi ý: 3)
+
+  # TODO 5: Điền selector — Deployment tìm Pod của mình bằng label này
+  selector: {matchLabels: {app: web}} # ← ĐIỀN VÀO ĐÂY (gợi ý: app: web)
+
+  # TODO 6: Điền template — khuôn mẫu để tạo Pod
+  template:
+    # TODO 6a: Labels của Pod PHẢI KHỚP với selector.matchLabels
+    metadata: {labels: {app: web}} # ← ĐIỀN VÀO ĐÂY (gợi ý: app: web)
+
+    spec:
+      containers:
+        # TODO 7: Điền name và image của container
+        # name: tên container trong pod
+        # image: nginx:1.27 (dùng tag cụ thể, không dùng latest)
+        - {name: web, image: nginx:1.27} # ← ĐIỀN VÀO ĐÂY (gợi ý: name: web, image: nginx:1.27)
+
+# =============================================================================
+# LỆNH CHẠY TRÊN MINIKUBE (chạy theo thứ tự):
+# =============================================================================
+#
+# BƯỚC 1 — Khởi động Minikube (nếu chưa chạy):
+#   minikube start
+#
+# BƯỚC 2 — Apply file này lên cluster:
+#   kubectl apply -f web.yaml
+#
+# BƯỚC 3 — Kiểm tra Deployment + ReplicaSet + Pod cùng lúc:
+#   kubectl get deploy,rs,pods
+#
+# BƯỚC 4 — Xem chi tiết Deployment:
+#   kubectl describe deployment web
+#
+# BƯỚC 5 — Thử xóa 1 Pod, xem ReplicaSet tự tạo lại:
+#   kubectl delete pod <tên_pod_bất_kỳ>
+#   kubectl get pods -w          ← watch Pod mới được tạo lại
+#
+# BƯỚC 6 — Scale lên 5 Pod bằng cách sửa replicas rồi apply lại:
+#   # Sửa replicas: 3 → replicas: 5 trong file này, sau đó:
+#   kubectl apply -f web.yaml
+#   kubectl get pods              ← thấy 5 Pod
+#
+# BƯỚC 7 — Xóa Deployment khi xong:
+#   kubectl delete -f web.yaml
+# =============================================================================
+
+
+# =============================================================================
+# LAB 5 - CONFIG & SECRET
+# Tách config khỏi image, inject qua env
+# =============================================================================
+# Mục tiêu: Tạo ConfigMap + Secret rồi inject vào Deployment qua env.
+#
+# Output mong đợi (bên trong Pod):
+#   APP_ENV=production
+#   DB_PASSWORD=s3cr3t
+#
+# 💡 Đổi config không cần build lại image:
+#    Sửa ConfigMap → rollout lại Pod → app nhận giá trị mới.
+#    Cùng 1 image chạy được mọi môi trường.
+#
+# ⚠️  Dùng "kubectl set env" kích hoạt một rolling update —
+#    Pod được tạo lại với env mới. Đây là hành vi rollout
+#    bạn sẽ học kỹ buổi chiều.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# BƯỚC A — Tạo ConfigMap + Secret bằng lệnh imperative (gõ thẳng terminal)
+# -----------------------------------------------------------------------------
+#
+# TODO 8: Tạo ConfigMap tên "app-cfg" với key APP_ENV=production
+#   Gợi ý cú pháp:
+#     kubectl create configmap <tên> \
+#       --from-literal=<KEY>=<value>
+#
+#   Lệnh cần gõ:
+#   kubectl create configmap app-cfg --from-literal=APP_ENV=production        # ← GÕ LỆNH NÀY VÀO TERMINAL
+#
+#
+# TODO 9: Tạo Secret tên "app-sec" với key DB_PASSWORD=s3cr3t
+#   Gợi ý cú pháp:
+#     kubectl create secret generic <tên> \
+#       --from-literal=<KEY>=<value>
+#   (K8s tự mã hóa base64 khi lưu Secret)
+#
+#   Lệnh cần gõ:
+#   kubectl create secret generic app-sec --from-literal=DB_PASSWORD=s3cr3t       # ← GÕ LỆNH NÀY VÀO TERMINAL
+#
+#
+# TODO 10: Kiểm tra ConfigMap và Secret đã tạo chưa
+#   kubectl get configmap
+#   kubectl get secret
+#   kubectl describe configmap app-cfg        # ← xem nội dung configmap
+#   kubectl get secret app-sec -o yaml        # ← xem secret (value dạng base64)
+
+# -----------------------------------------------------------------------------
+# BƯỚC B — Inject ConfigMap + Secret vào Deployment qua env
+# -----------------------------------------------------------------------------
+#
+# TODO 11: Inject toàn bộ ConfigMap "app-cfg" vào Deployment "web"
+#   Gợi ý cú pháp:
+#     kubectl set env deploy/<tên_deployment> \
+#       --from=configmap/<tên_configmap>
+#
+#   Lệnh cần gõ:
+#   kubectl set env deploy/web --from=configmap/app-cfg               # ← GÕ LỆNH NÀY VÀO TERMINAL
+#
+#
+# TODO 12: Inject toàn bộ Secret "app-sec" vào Deployment "web"
+#   Gợi ý cú pháp:
+#     kubectl set env deploy/<tên_deployment> \
+#       --from=secret/<tên_secret>
+#
+#   Lệnh cần gõ:
+#   kubectl set env deploy/web --from=secret/app-sec                  # ← GÕ LỆNH NÀY VÀO TERMINAL
+#
+#
+# TODO 13: Theo dõi rolling update sau khi inject env
+#   (K8s sẽ tạo lại Pod với env mới — không cần xóa thủ công)
+#   kubectl rollout status deploy/web        # ← GÕ LỆNH NÀY VÀO TERMINAL
+
+# -----------------------------------------------------------------------------
+# BƯỚC C — Kiểm tra env bên trong Pod
+# -----------------------------------------------------------------------------
+#
+# TODO 14: Exec vào Pod, lọc đúng 2 biến APP_ENV và DB_PASSWORD
+#   Gợi ý cú pháp:
+#     kubectl exec deploy/<tên_deployment> -- env \
+#       | grep -E '<PATTERN>'
+#
+#   Lệnh cần gõ:
+#   kubectl exec deploy/web -- env | Select-String "APP_ENV|DB_PASSWORD"        # ← GÕ LỆNH NÀY VÀO TERMINAL
+#
+#   Output mong đợi:
+#     APP_ENV=production
+#     DB_PASSWORD=s3cr3t
+
+# -----------------------------------------------------------------------------
+# BƯỚC D — Thử nghiệm: Đổi config mà không build lại image
+# -----------------------------------------------------------------------------
+#
+# TODO 15: Đổi APP_ENV từ "production" → "staging" không cần build lại image
+#   B1 — Xóa ConfigMap cũ:
+#     kubectl delete configmap app-cfg
+#
+#   B2 — Tạo lại ConfigMap với giá trị mới:
+#     kubectl create configmap app-cfg --from-literal=APP_ENV=staging
+#
+#   B3 — Trigger rollout để Pod nhận giá trị mới:
+#     kubectl rollout restart deploy/web
+#
+#   B4 — Kiểm tra lại:
+#     kubectl exec deploy/web -- env | grep APP_ENV
+#     # Output mong đợi: APP_ENV=staging    ← cùng image, khác config!
+
+# -----------------------------------------------------------------------------
+# BƯỚC E — Dọn dẹp
+# -----------------------------------------------------------------------------
+#
+# TODO 16: Xóa toàn bộ resource đã tạo trong LAB 3 + LAB 5
+#   kubectl delete -f web.yaml
+#   kubectl delete configmap app-cfg
+#   kubectl delete secret app-sec
+#   kubectl get all                          # ← verify đã sạch
+# =============================================================================
+
+
+# =============================================================================
+# LAB 4 - LABELS & SELF-HEAL
+# Lọc theo label & "giết" 1 Pod
+# =============================================================================
+# Mục tiêu: Hiểu label là "chất keo" gắn kết mọi thứ trong K8s.
+#           Xóa 1 Pod thủ công → xem ReplicaSet tự tạo lại ngay lập tức.
+#
+# 💡 So sánh với Lab 1 (tạo Pod trần):
+#    Pod trần (Lab 2) xoá là mất.
+#    Pod thuộc Deployment xoá thì SỐNG LẠI ngay — vì
+#    ReplicaSet giữ desired state = 3.
+#
+# 💡 Control loop chạy trước mắt bạn:
+#    thực tế (2) ≠ mong muốn (3) → reconcile → tạo lại.
+#    Không ai bấm nút gì cả.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# BƯỚC A — Label: "chất keo" gắn kết mọi thứ trong K8s
+# -----------------------------------------------------------------------------
+#
+# TODO 17: Xem tất cả Pod kèm labels của chúng
+#   Gợi ý cú pháp:
+#     kubectl get pods --show-labels
+#
+#   Lệnh cần gõ:
+#   kubectl get pods --show-labels             # ← GÕ LỆNH NÀY VÀO TERMINAL
+#
+#   Output mong đợi (cột LABELS):
+#     NAME             READY  STATUS   LABELS
+#     web-5d8c-aa      1/1    Running  app=web
+#     web-5d8c-bb      1/1    Running  app=web
+#     web-5d8c-cc      1/1    Running  app=web
+#
+#
+# TODO 18: Lọc chỉ lấy Pod có label app=web
+#   Gợi ý cú pháp:
+#     kubectl get pods -l <key>=<value>
+#
+#   Lệnh cần gõ:
+#   kubectl get pods -l app=web                # ← GÕ LỆNH NÀY VÀO TERMINAL
+#
+#
+# TODO 19: Xem log của tất cả Pod có label app=web, chỉ lấy 3 dòng cuối
+#   Gợi ý cú pháp:
+#     kubectl logs -l <key>=<value> --tail=<số_dòng>
+#
+#   Lệnh cần gõ:
+#   kubectl logs -l app=web --tail=3           # ← GÕ LỆNH NÀY VÀO TERMINAL
+
+# -----------------------------------------------------------------------------
+# BƯỚC B — Self-healing: xoá 1 Pod, xem ReplicaSet tự tạo lại
+# -----------------------------------------------------------------------------
+#
+# TODO 20: Lấy tên 1 Pod bất kỳ bằng lệnh inline (không cần copy tay)
+#   Gợi ý cú pháp:
+#     $(kubectl get pods -l <selector> -o name | head -1)
+#   → Lấy dòng đầu tiên của danh sách pod name
+#
+#   Lệnh cần gõ (1 lệnh ghép):
+#   kubectl delete pod \
+#     $(kubectl get pods -l app=web \
+#       -o name | head -1)                     # ← GÕ LỆNH NÀY VÀO TERMINAL
+#
+#   Output mong đợi:
+#     pod "web-5d8c-aa" deleted
+#
+#
+# TODO 21: Watch Pod mới mọc lên ngay lập tức (chạy TRƯỚC hoặc NGAY SAU bước 20)
+#   Gợi ý cú pháp:
+#     kubectl get pods -w
+#   (Nhấn Ctrl+C để thoát watch)
+#
+#   Lệnh cần gõ:
+#   kubectl get pods -w                        # ← GÕ LỆNH NÀY VÀO TERMINAL
+#
+#   Output mong đợi (xem theo thời gian thực):
+#     web-5d8c-aa   1/1   Running             ← pod cũ đang sống
+#     web-5d8c-aa   1/1   Terminating         ← bị xoá
+#     web-5d8c-dd   0/1   Pending             ← pod MỚI xuất hiện ngay!
+#     web-5d8c-dd   0/1   ContainerCreating
+#     web-5d8c-dd   1/1   Running             ← pod mới đã sống
+
+# -----------------------------------------------------------------------------
+# BƯỚC C — Giải thích: tại sao Pod tự tạo lại?
+# -----------------------------------------------------------------------------
+#
+# TODO 22: Xem ReplicaSet để hiểu "ai" đã tạo Pod mới
+#   Lệnh cần gõ:
+#   kubectl get replicasets                    # ← GÕ LỆNH NÀY VÀO TERMINAL
+#   kubectl describe replicaset               # ← xem Events — thấy "Created pod"
+#
+#   📌 Giải thích:
+#   ReplicaSet controller liên tục so sánh:
+#     desired  = replicas: 3  (khai báo trong Deployment)
+#     actual   = 2 pod đang chạy (sau khi bạn xoá 1)
+#   → 2 ≠ 3 → tạo thêm 1 Pod mới cho đủ desired state.
+#   → Đây là "reconcile loop" — trái tim của Kubernetes.
+#
+#
+# TODO 23: Kiểm tra lại tổng số Pod sau khi tự heal
+#   kubectl get pods                           # ← GÕ LỆNH NÀY VÀO TERMINAL
+#   # Kết quả mong đợi: vẫn còn 3 Pod ở trạng thái Running
+
+# -----------------------------------------------------------------------------
+# BƯỚC D — Bonus: xoá nhiều Pod cùng lúc bằng label selector
+# -----------------------------------------------------------------------------
+#
+# TODO 24: (Thử thách) Xoá TẤT CẢ Pod có label app=web cùng 1 lúc
+#   Gợi ý cú pháp:
+#     kubectl delete pods -l <key>=<value>
+#
+#   Lệnh cần gõ:
+#   kubectl delete pods -l app=web             # ← GÕ LỆNH NÀY VÀO TERMINAL
+#
+#   Sau đó watch ngay:
+#   kubectl get pods -w
+#
+#   📌 Kết quả mong đợi: ReplicaSet tạo lại đủ 3 Pod mới — tất cả Running.
+#   ⚠️  Lưu ý: Xoá pod ≠ xoá Deployment. Deployment vẫn còn, RS vẫn còn.
+#              Muốn xoá thật sự → kubectl delete -f web.yaml
+# =============================================================================
