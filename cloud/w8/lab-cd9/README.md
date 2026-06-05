@@ -1,6 +1,30 @@
-# 🚀 LAB CD9 — 1-Click Automation: Terraform ➔ Custom VPC ➔ EC2 (Kind) ➔ K8s Provider ➔ ALB
+<p align="center">
+  <img src="https://img.icons8.com/color/96/000000/kubernetes.png" alt="Kubernetes Logo" width="80"/>
+</p>
 
-Dự án này thực hiện tự động hóa hoàn toàn ở mức độ cao nhất (Native IaC) bằng cách kết hợp **AWS Provider** (dựng hạ tầng) và **Kubernetes Provider** (deploy ứng dụng trực tiếp bằng code HCL) trong **một lệnh duy nhất** (`1-click`).
+# <p align="center">🚀 LAB CD9 — 1-Click Automation Platform</p>
+
+### <p align="center">Terraform ➔ Custom VPC ➔ EC2 (Kind) ➔ K8s Provider ➔ ALB</p>
+
+<p align="center">
+  <a href="https://terraform.io"><img src="https://img.shields.io/badge/TERRAFORM-1.5+-7B42BC?style=for-the-badge&logo=terraform&logoColor=white" alt="Terraform"/></a>
+  <a href="https://kubernetes.io"><img src="https://img.shields.io/badge/KUBERNETES-KIND-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white" alt="Kubernetes"/></a>
+  <a href="https://aws.amazon.com"><img src="https://img.shields.io/badge/AWS-ALB-FF9900?style=for-the-badge&logo=amazon-aws&logoColor=white" alt="AWS ALB"/></a>
+  <a href="https://docker.com"><img src="https://img.shields.io/badge/DOCKER-KIND-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker Engine"/></a>
+</p>
+
+<p align="center">
+  <a href="evidence.md"><img src="https://img.shields.io/badge/EVIDENCE%20PACK-VIEW%20NOW-4CAF50?style=for-the-badge&logo=google-docs&logoColor=white" alt="Evidence Pack"/></a>
+  <a href="study_guide.md"><img src="https://img.shields.io/badge/STUDY%20GUIDE-OPEN-00bcd4?style=for-the-badge&logo=read-the-docs&logoColor=white" alt="Study Guide"/></a>
+</p>
+
+> An automated, single-command deployment pipeline that provisions a full AWS network infrastructure, boots a Kubernetes Kind cluster inside EC2, and deploys a secure Nginx application using the Kubernetes HCL provider.
+
+---
+
+<p align="center">
+  <b>Nguyễn Đình Thi</b> · <code>XB-DN26-103</code> · <b>W8 Submission</b> · Deadline: 05/06/2026
+</p>
 
 ---
 
@@ -35,7 +59,7 @@ Dự án này thể hiện sự phối hợp nhịp nhàng giữa 4 Providers tr
 4. **Kubernetes Provider**: Kết nối trực tiếp vào API Server của cụm Kind Cluster và deploy các tài nguyên K8s dưới dạng code HCL.
 
 ### Thách thức Bootstrapping và Giải pháp Proxy (`providers.tf` & `kubernetes.tf`):
-Một vấn đề kinh đoán của Terraform khi deploy ứng dụng vào cụm K8s mới tinh trong 1 lần apply: **Làm sao để Kubernetes Provider kết nối và xác thực khi cụm K8s vừa mới được dựng và nằm trong mạng cô lập?**
+Một vấn đề kinh điển của Terraform khi deploy ứng dụng vào cụm K8s mới tinh trong 1 lần apply: **Làm sao để Kubernetes Provider kết nối và xác thực khi cụm K8s vừa mới được dựng và nằm trong mạng cô lập?**
 * **Bẫy lỗi**: Nếu copy file kubeconfig hay Certificate về máy local để xác thực, Terraform sẽ bị lỗi ngay từ bước `plan` vì file chưa tồn tại hoặc bị lỗi nạp cấu hình (provider reload) giữa chừng.
 * **Giải pháp đột phá**:
   1. Trong script `user_data.sh`, ta chạy ngầm lệnh `kubectl proxy --port=8081 --address='0.0.0.0'` trên EC2 để biến API Server thành HTTP không cần xác thực (chỉ cho phép IP của bạn truy cập qua Security Group để bảo mật).

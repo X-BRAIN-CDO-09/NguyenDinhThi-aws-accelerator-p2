@@ -1,7 +1,31 @@
-# 🚀 AWS Accelerator - Phase 2 (DevOps/Cloud Portfolio)
+<p align="center">
+  <img src="https://img.icons8.com/color/96/000000/cloud-systems.png" alt="AWS DevOps Logo" width="80"/>
+</p>
 
-> 💡 **Học viên:** Nguyễn Đình Thi  
-> 📅 **Thời gian:** 01/06/2026 – 03/07/2026 (5 tuần)
+# <p align="center">☁️ AWS DevOps & Cloud Accelerator</p>
+
+### <p align="center">Phase 2 Project Portfolio — XBrain DevOps Engineering Bootcamp</p>
+
+<p align="center">
+  <a href="https://terraform.io"><img src="https://img.shields.io/badge/TERRAFORM-1.5+-7B42BC?style=for-the-badge&logo=terraform&logoColor=white" alt="Terraform"/></a>
+  <a href="https://kubernetes.io"><img src="https://img.shields.io/badge/KUBERNETES-v1.30-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white" alt="Kubernetes"/></a>
+  <a href="https://aws.amazon.com"><img src="https://img.shields.io/badge/AWS-CLOUD-FF9900?style=for-the-badge&logo=amazon-aws&logoColor=white" alt="AWS"/></a>
+  <a href="https://docker.com"><img src="https://img.shields.io/badge/DOCKER-ENGINE-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker"/></a>
+</p>
+
+<p align="center">
+  <a href="./cloud/w8/lab-cd9/evidence.md"><img src="https://img.shields.io/badge/EVIDENCE%20PACK-VIEW%20NOW-4CAF50?style=for-the-badge&logo=google-docs&logoColor=white" alt="Evidence Pack"/></a>
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/LICENSE-MIT-607d8b?style=for-the-badge" alt="License"/></a>
+</p>
+
+> A comprehensive portfolio of cloud infrastructure and DevOps automation projects.
+> Built using Infrastructure as Code (Terraform), Kubernetes container orchestration, and AWS cloud resources.
+
+---
+
+<p align="center">
+  <b>Nguyễn Đình Thi</b> · <code>XB-DN26-103</code> · <b>Phase 2 Submission</b> · Deadline: 05/06/2026
+</p>
 
 ---
 
@@ -29,7 +53,7 @@ cloud/
     day-a/              # Terraform (Lý thuyết & Bài tập ngày 1+2)
     day-b/              # K8s Container/Orchestration (Lý thuyết & Cài đặt ngày 3)
     day-c/              # K8s Scaling + Networking (Lab onsite ngày 4)
-    lab/                # Dự án Lab: Minimal K8s platform trên minikube (ngày 5)
+    lab-cd9/            # Dự án Lab: 1-Click Automation Platform (ngày 5)
     reflection.md       # Báo cáo thu hoạch & Nhật ký học tập Tuần 8
   w9/
   w10/
