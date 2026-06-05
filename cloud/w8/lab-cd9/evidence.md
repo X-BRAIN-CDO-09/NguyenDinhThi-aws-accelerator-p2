@@ -25,6 +25,9 @@ Dưới đây là bảng đối chiếu các yêu cầu bắt buộc của đề
 
 ## II. GIẢI THÍCH KIẾN TRÚC & QUYẾT ĐỊNH THIẾT KẾ (TRAINER ORAL PREPARATION)
 
+### Sơ đồ Kiến trúc Hệ thống (Architecture Diagram)
+![Sơ đồ Kiến trúc Hệ thống](image.png)
+
 ### 1. Cơ chế "Wire" các Provider trong dự án
 Dự án thực hiện liên kết (wire) chặt chẽ giữa các Provider độc lập:
 * **TLS Provider ➔ AWS Provider**: Tài nguyên `tls_private_key.ssh` sinh khóa Public Key trực tiếp trong bộ nhớ RAM, sau đó truyền kết quả sang làm tham số đầu vào cho `aws_key_pair.deployer` để nạp lên AWS. Khóa Private Key được `local_file` ghi xuống ổ cứng dạng `.pem` để Dev sử dụng kết nối SSH.
