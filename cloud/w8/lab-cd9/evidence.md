@@ -133,6 +133,10 @@ Tự động tăng số lượng Pod khi CPU quá tải và giảm Pod khi tải
     ```bash
     kubectl run -it --rm load-generator --image=busybox --restart=Never -n lab-cd9 -- /bin/sh -c "while true; do wget -q -O- http://web-service > /dev/null; done"
     ```
+    *Minh chứng thực thi lệnh chạy vòng lặp vô hạn tạo tải:*
+    
+    ![Spam Request](assets/spam_request.png)
+    
     Giám sát động (`kubectl get hpa -n lab-cd9 -w`), CPU tăng lên **69%** và số lượng bản sao nâng lên **3 Pods** thành công:
     ```bash
     ubuntu@ip-10-0-1-191:~$ kubectl get hpa -n lab-cd9 -w
@@ -143,6 +147,13 @@ Tự động tăng số lượng Pod khi CPU quá tải và giảm Pod khi tải
     web-hpa   Deployment/web-app   cpu: 69%/50%  2         10        3          17m  # 🚀 Scale out lên 3 Pods thành công!
     web-hpa   Deployment/web-app   cpu: 33%/50%  2         10        3          18m  # Tải hạ về 33% nhờ chia sẻ tải
     ```
+    *Minh chứng HPA nhận diện CPU đạt 69% và tự động kích hoạt Scale Out lên 3 Pods:*
+    
+    ![Scale Out Replicas](assets/scale_out_replicas.png)
+    
+    *Minh chứng HPA tự động hạ số lượng Pod về 2 (Scale In) sau khi kết thúc tạo tải:*
+    
+    ![Scale In Cooldown](assets/scale_in.png)
 
 ---
 
