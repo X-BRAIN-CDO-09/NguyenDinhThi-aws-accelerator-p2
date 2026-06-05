@@ -1,6 +1,6 @@
 # ==============================================================================
 # LAB CD9 - Kubernetes Resources Configuration
-# Su dung Kubernetes Provider de deploy ung dung trực tiep bang HCL cua Terraform
+# Su dung Kubernetes Provider de deploy ung dung truc tiep bang HCL cua Terraform
 # ==============================================================================
 
 # 1. Khoi tao K8s Namespace
@@ -9,7 +9,15 @@ resource "kubernetes_namespace_v1" "web" {
     name = "lab-cd9"
   }
 
-  depends_on = [null_resource.wait_for_minikube]
+  # 🔑 Critical dependency lock to prevent terraform destroy deadlock
+  # Keeps the network routing path and proxy active until K8s resources are fully destroyed
+  depends_on = [
+    null_resource.wait_for_minikube,
+    aws_route_table_association.public_a,
+    aws_route_table_association.public_b,
+    aws_route_table.public,
+    aws_internet_gateway.gw
+  ]
 }
 
 # 2. ConfigMap chua noi dung trang HTML tuy chinh (thay the trang Nginx mac dinh)

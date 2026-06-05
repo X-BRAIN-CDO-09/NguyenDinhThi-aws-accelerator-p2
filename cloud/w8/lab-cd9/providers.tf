@@ -21,13 +21,13 @@ terraform {
       source  = "hashicorp/kubernetes"
       version = "~> 2.30"
     }
+
   }
 }
 
 provider "aws" {
   region = var.aws_region
 }
-
 # 🔑 Kubernetes Provider - Ket noi vao API Server cua Minikube thong qua Proxy
 # Su dung host va port dong tu variables
 provider "kubernetes" {
