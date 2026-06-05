@@ -106,7 +106,47 @@ Mở địa chỉ URL xuất ra từ output `alb_dns_name` trên trình duyệt 
 
 ---
 
-### 7. Dọn dẹp sạch sẽ tài nguyên (`terraform destroy`)
+### 7. Nghiệm thu cơ chế tự động co giãn Horizontal Pod Autoscaler (HPA)
+Tự động tăng số lượng Pod khi CPU quá tải và giảm Pod khi tải hạ nhiệt.
+
+*   **Minh chứng Metrics Server & HPA hoạt động ổn định:**
+    Kiểm tra mức tiêu thụ CPU/RAM thực tế của cụm:
+    ```bash
+    ubuntu@ip-10-0-1-191:~$ kubectl top nodes
+    NAME                    CPU(cores)   CPU(%)   MEMORY(bytes)   MEMORY(%)   
+    lab-cd9-control-plane   111m         5%       657Mi           17%
+
+    ubuntu@ip-10-0-1-191:~$ kubectl top pods -n lab-cd9
+    NAME                       CPU(cores)   MEMORY(bytes)   
+    web-app-66dff685f9-489w2   1m           3Mi
+    web-app-66dff685f9-d579k   1m           3Mi
+    ```
+    Trạng thái HPA ban đầu (nhận diện thành công `cpu: 0%/50%`):
+    ```bash
+    ubuntu@ip-10-0-1-191:~$ kubectl get hpa -n lab-cd9
+    NAME      REFERENCE            TARGETS       MINPODS   MAXPODS   REPLICAS   AGE
+    web-hpa   Deployment/web-app   cpu: 0%/50%   2         10        2          6m49s
+    ```
+
+*   **Minh chứng tự động Co giãn Pod (Scale Out) khi stress test:**
+    Chạy Pod tạo tải vô hạn để đẩy CPU vượt ngưỡng:
+    ```bash
+    kubectl run -it --rm load-generator --image=busybox --restart=Never -n lab-cd9 -- /bin/sh -c "while true; do wget -q -O- http://web-service > /dev/null; done"
+    ```
+    Giám sát động (`kubectl get hpa -n lab-cd9 -w`), CPU tăng lên **69%** và số lượng bản sao nâng lên **3 Pods** thành công:
+    ```bash
+    ubuntu@ip-10-0-1-191:~$ kubectl get hpa -n lab-cd9 -w
+    NAME      REFERENCE            TARGETS       MINPODS   MAXPODS   REPLICAS   AGE
+    web-hpa   Deployment/web-app   cpu: 0%/50%   2         10        2          6m54s
+    web-hpa   Deployment/web-app   cpu: 13%/50%  2         10        2          17m
+    web-hpa   Deployment/web-app   cpu: 69%/50%  2         10        2          17m
+    web-hpa   Deployment/web-app   cpu: 69%/50%  2         10        3          17m  # 🚀 Scale out lên 3 Pods thành công!
+    web-hpa   Deployment/web-app   cpu: 33%/50%  2         10        3          18m  # Tải hạ về 33% nhờ chia sẻ tải
+    ```
+
+---
+
+### 8. Dọn dẹp sạch sẽ tài nguyên (`terraform destroy`)
 Hủy bỏ toàn bộ hạ tầng để tránh tốn phí.
 
 * **Minh chứng thực tế**:
