@@ -62,6 +62,10 @@ until kubectl --kubeconfig=/home/ubuntu/.kube/config get nodes 2>/dev/null | gre
 done
 echo "Kind node is Ready!"
 
+echo "=== [7.5/8] Cai dat Metrics Server cho HPA ==="
+kubectl --kubeconfig=/home/ubuntu/.kube/config apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+kubectl --kubeconfig=/home/ubuntu/.kube/config patch deployment metrics-server -n kube-system --type='json' -p='[{"op": "add", "path": "/spec/template/spec/containers/0/args/-", "value": "--kubelet-insecure-tls"}]'
+
 echo "=== [8/8] Khoi dong kubectl proxy cho Terraform K8s Provider ==="
 nohup kubectl \
   --kubeconfig=/home/ubuntu/.kube/config \

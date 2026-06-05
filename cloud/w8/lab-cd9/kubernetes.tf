@@ -129,3 +129,35 @@ resource "kubernetes_service_v1" "web" {
 
   depends_on = [kubernetes_deployment_v1.web]
 }
+
+# 5. Cau hinh Horizontal Pod Autoscaler (HPA) bang HCL de tu dong co gian Pod theo CPU
+resource "kubernetes_horizontal_pod_autoscaler_v2" "web_hpa" {
+  metadata {
+    name      = "web-hpa"
+    namespace = kubernetes_namespace_v1.web.metadata[0].name
+  }
+
+  spec {
+    min_replicas = 2
+    max_replicas = 10
+
+    scale_target_ref {
+      api_version = "apps/v1"
+      kind        = "Deployment"
+      name        = kubernetes_deployment_v1.web.metadata[0].name
+    }
+
+    metric {
+      type = "Resource"
+      resource {
+        name = "cpu"
+        target {
+          type                = "Utilization"
+          average_utilization = 50
+        }
+      }
+    }
+  }
+
+  depends_on = [kubernetes_deployment_v1.web]
+}
