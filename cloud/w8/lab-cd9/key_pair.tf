@@ -20,5 +20,5 @@ resource "aws_key_pair" "deployer" {
 resource "local_file" "private_key" {
   content         = tls_private_key.ssh.private_key_pem
   filename        = "${path.module}/${local.name_prefix}-key.pem"
-  file_permission = "0400" # Dat quyen Read-Only cho chu so huu file (bao mat SSH)
+  file_permission = "0600" # Dat quyen Read-Write cho chu so huu file (tranh loi Access is denied tren Windows)
 }
