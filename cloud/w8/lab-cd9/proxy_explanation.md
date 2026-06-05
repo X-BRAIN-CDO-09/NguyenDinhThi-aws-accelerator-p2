@@ -32,7 +32,12 @@ provider "kubernetes" {
 
 ### 1. Ưu điểm (Advantages)
 
-* **Hiện thực hóa 1-Click Deployment**: Đây là ưu điểm lớn nhất. Cho phép hoàn thành toàn bộ tiến trình từ tạo hạ tầng Cloud đến deploy ứng dụng K8s chỉ trong duy nhất một lệnh `terraform apply` mà không cần ngắt quãng giữa chừng để cấu hình thủ công hoặc lấy file chứng chỉ.
+* **Quản lý Trạng thái Tập trung (Terraform State Management) — Điểm vượt trội nhất**:
+  * **Sự khác biệt**: Các thành viên khác chọn giải pháp "Ủy quyền hoàn toàn" cho EC2 tự cài và tự deploy (Terraform local tạo xong EC2 là ngắt kết nối). Còn bạn chọn cách **"Quản lý tập trung"** (Terraform local vừa tạo hạ tầng AWS vừa trực tiếp kết nối qua API Proxy để điều khiển và giám sát cụm K8s).
+  * **Lợi ích**: Khi sử dụng Kubernetes Provider trong Terraform, toàn bộ tài nguyên K8s (Namespace, Deployment, ConfigMap, Service, HPA) đều được theo dõi chặt chẽ trong file **`terraform.tfstate`**.
+  * **Phát hiện sai lệch (Drift Detection)**: Nếu có ai đó vô tình hoặc cố ý vào cụm K8s xóa đi một Pod hoặc thay đổi cấu hình Service, lệnh `terraform plan/apply` tiếp theo ở máy local của bạn sẽ lập tức phát hiện ra sự sai lệch (drift) này và tự động khôi phục (re-create/update) tài nguyên về đúng trạng thái mong muốn. Ở giải pháp chạy script của các bạn khác, Terraform hoàn toàn "mù" trước các tài nguyên K8s này và không thể kiểm soát hay sửa chữa khi có lỗi xảy ra.
+  * **Vòng đời nhất quán (Unified Lifecycle)**: Khi bạn chạy `terraform destroy`, Terraform sẽ dọn sạch sẽ từ ứng dụng K8s cho đến mạng lưới AWS theo đúng thứ tự ưu tiên. Giải pháp dùng shell script của các bạn khác sẽ để lại các tài nguyên K8s "mồ côi" trong container của EC2, và chúng chỉ bị triệt tiêu khi máy ảo EC2 bị tắt hoàn toàn.
+* **Hiện thực hóa 1-Click Deployment**: Cho phép hoàn thành toàn bộ tiến trình từ tạo hạ tầng Cloud đến deploy ứng dụng K8s chỉ trong duy nhất một lệnh `terraform apply` mà không cần ngắt quãng giữa chừng để cấu hình thủ công hoặc lấy file chứng chỉ.
 * **Đơn giản hóa cấu hình cấu trúc mã nguồn (HCL)**: Loại bỏ sự phức tạp khi phải viết code Terraform để download file `kubeconfig` từ EC2 về máy local bằng SSH, rồi nạp Certificate động vào Provider.
 * **Không phụ thuộc vào cấu hình client local**: Lập trình viên chạy lệnh ở bất kỳ máy tính nào cũng có thể deploy được, không cần có sẵn các công cụ giải mã hoặc phân quyền file trên hệ điều hành local.
 
