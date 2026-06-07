@@ -72,3 +72,30 @@ resource "aws_security_group" "ec2_sg" {
     Name = "${local.name_prefix}-ec2-sg"
   })
 }
+
+# 3. Security Group cho RDS (CHI cho phep EC2 SG ket noi MySQL port 3306)
+resource "aws_security_group" "rds_sg" {
+  name        = "${local.name_prefix}-rds-sg"
+  description = "Allow MySQL traffic only from EC2 Security Group"
+  vpc_id      = aws_vpc.main.id
+
+  # Inbound: Chi cho phep port 3306 (MySQL) tu EC2 Security Group
+  ingress {
+    from_port       = 3306
+    to_port         = 3306
+    protocol        = "tcp"
+    security_groups = [aws_security_group.ec2_sg.id]
+  }
+
+  # Outbound: Cho phep ket noi ra ngoai (de RDS co the tai updates neu can)
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = merge(local.common_tags, {
+    Name = "${local.name_prefix}-rds-sg"
+  })
+}

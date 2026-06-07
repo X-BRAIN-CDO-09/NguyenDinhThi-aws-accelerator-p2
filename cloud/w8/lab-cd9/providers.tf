@@ -4,6 +4,15 @@
 # ==============================================================================
 
 terraform {
+  # ===== S3 BACKEND =====
+  backend "s3" {
+    bucket         = "lab-cd9-terraform-state-884244642114"
+    key            = "global/s3/terraform.tfstate"
+    region         = "ap-southeast-1"
+    dynamodb_table = "lab-cd9-terraform-lock"
+    encrypt        = true
+  }
+
   required_providers {
     aws = {
       source  = "hashicorp/aws"
@@ -25,8 +34,10 @@ terraform {
       source  = "hashicorp/null"
       version = "~> 3.0"
     }
-
-
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.6"
+    }
   }
 }
 
