@@ -1,119 +1,119 @@
-﻿# BĂO CĂO NGHIá»†M THU (EVIDENCE REPORT)
-## Äá»€ BĂ€I: K8s on AWS â€” Terraform 1-Click
+# BÁO CÁO NGHIỆM THU (EVIDENCE REPORT)
+## ĐỀ BÀI: K8s on AWS — Terraform 1-Click
 
-* **Há»c viĂªn:** Nguyá»…n ÄĂ¬nh Thi  
-* **Dá»± Ă¡n:** LAB CD9 â€” 1-Click Automation  
-* **Nguá»“n Repo:** [X-BRAIN-CDO-09/NguyenDinhThi-aws-accelerator-p2](https://github.com/X-BRAIN-CDO-09/NguyenDinhThi-aws-accelerator-p2.git)  
+* **Học viên:** Nguyễn Đình Thi  
+* **Dự án:** LAB CD9 — 1-Click Automation  
+* **Nguồn Repo:** [X-BRAIN-CDO-09/NguyenDinhThi-aws-accelerator-p2](https://github.com/X-BRAIN-CDO-09/NguyenDinhThi-aws-accelerator-p2.git)  
 
 ---
 
-## I. Báº¢NG Äá»I CHIáº¾U TIĂU CHĂ Äáº T (ACCEPTANCE CHECKLIST)
+## I. BẢNG ĐỐI CHIẾU TIÊU CHÍ ĐẠT (ACCEPTANCE CHECKLIST)
 
-DÆ°á»›i Ä‘Ă¢y lĂ  báº£ng Ä‘á»‘i chiáº¿u cĂ¡c yĂªu cáº§u báº¯t buá»™c cá»§a Ä‘á» bĂ i so vá»›i káº¿t quáº£ thá»±c táº¿ cá»§a giáº£i phĂ¡p:
+Dưới đây là bảng đối chiếu các yêu cầu bắt buộc của đề bài so với kết quả thực tế của giải pháp:
 
-| STT | YĂªu cáº§u báº¯t buá»™c cá»§a Äá» bĂ i | Tráº¡ng thĂ¡i | Giáº£i phĂ¡p ká»¹ thuáº­t thá»±c táº¿ trong Dá»± Ă¡n |
+| STT | Yêu cầu bắt buộc của Đề bài | Trạng thái | Giải pháp kỹ thuật thực tế trong Dự án |
 | :--- | :--- | :---: | :--- |
-| **1** | Háº¡ táº§ng (EC2 + máº¡ng) dá»±ng báº±ng **Terraform** | **Äáº T** | Tá»± Ä‘á»™ng táº¡o Custom VPC, 2 Subnets, Internet Gateway, Route Tables, Security Groups, EC2 vĂ  ALB. |
-| **2** | Cá»¥m K8s cháº¡y báº±ng **minikube hoáº·c kind** trĂªn EC2 | **Äáº T** | Sá»­ dá»¥ng **Kind** cháº¡y trĂªn Docker Engine cá»§a EC2. |
-| **3** | App cháº¡y **trong K8s** (khĂ´ng cĂ i tháº³ng lĂªn EC2) | **Äáº T** | á»¨ng dá»¥ng cháº¡y dÆ°á»›i dáº¡ng Pod trong Namespace `lab-cd9` cá»§a cá»¥m Kind K8s. |
-| **4** | App truy cáº­p Ä‘Æ°á»£c tá»« **Internet qua ALB** | **Äáº T** | ALB láº¯ng nghe cá»•ng 80 cĂ´ng cá»™ng vĂ  forward traffic vĂ o cá»•ng NodePort `30080` cá»§a EC2 Ä‘Æ°á»£c Ă¡nh xáº¡ tá»« Pod. |
-| **5** | **Má»™t lá»‡nh** Ä‘á»ƒ dá»±ng táº¥t cáº£ (1-click) | **Äáº T** | Chá»‰ cháº¡y duy nháº¥t lá»‡nh `terraform apply -auto-approve` Ä‘á»ƒ khá»Ÿi táº¡o tá»± Ä‘á»™ng toĂ n bá»™ tá»« Ä‘áº§u Ä‘áº¿n cuá»‘i. |
-| **6** | CĂ³ dĂ¹ng **$\ge 2$ provider** (wire provider khĂ¡c) | **Äáº T** | Sá»­ dá»¥ng **4 providers**: `aws`, `tls` (sinh SSH Key), `local` (ghi file `.pem`), vĂ  `kubernetes` (triá»ƒn khai app). |
-| **7** | Dá»n Ä‘Æ°á»£c sáº¡ch (**destroy**) sau khi xong | **Äáº T** | Cháº¡y lá»‡nh `terraform destroy -auto-approve` Ä‘á»ƒ xĂ³a sáº¡ch toĂ n bá»™ 22 tĂ i nguyĂªn trĂ¡nh tá»‘n phĂ­. |
+| **1** | Hạ tầng (EC2 + mạng) dựng bằng **Terraform** | **ĐẠT** | Tự động tạo Custom VPC, 2 Subnets, Internet Gateway, Route Tables, Security Groups, EC2 và ALB. |
+| **2** | Cụm K8s chạy bằng **minikube hoặc kind** trên EC2 | **ĐẠT** | Sử dụng **Kind** chạy trên Docker Engine của EC2. |
+| **3** | App chạy **trong K8s** (không cài thẳng lên EC2) | **ĐẠT** | Ứng dụng chạy dưới dạng Pod trong Namespace `lab-cd9` của cụm Kind K8s. |
+| **4** | App truy cập được từ **Internet qua ALB** | **ĐẠT** | ALB lắng nghe cổng 80 công cộng và forward traffic vào cổng NodePort `30080` của EC2 được ánh xạ từ Pod. |
+| **5** | **Một lệnh** để dựng tất cả (1-click) | **ĐẠT** | Chỉ chạy duy nhất lệnh `terraform apply -auto-approve` để khởi tạo tự động toàn bộ từ đầu đến cuối. |
+| **6** | Có dùng **$\ge 2$ provider** (wire provider khác) | **ĐẠT** | Sử dụng **4 providers**: `aws`, `tls` (sinh SSH Key), `local` (ghi file `.pem`), và `kubernetes` (triển khai app). |
+| **7** | Dọn được sạch (**destroy**) sau khi xong | **ĐẠT** | Chạy lệnh `terraform destroy -auto-approve` để xóa sạch toàn bộ 22 tài nguyên tránh tốn phí. |
 
 ---
 
-## II. GIáº¢I THĂCH KIáº¾N TRĂC & QUYáº¾T Äá»NH THIáº¾T Káº¾ (TRAINER ORAL PREPARATION)
+## II. GIẢI THÍCH KIẾN TRÚC & QUYẾT ĐỊNH THIẾT KẾ (TRAINER ORAL PREPARATION)
 
-### SÆ¡ Ä‘á»“ Kiáº¿n trĂºc Há»‡ thá»‘ng (Architecture Diagram)
-![SÆ¡ Ä‘á»“ Kiáº¿n trĂºc Há»‡ thá»‘ng](image.png)
+### Sơ đồ Kiến trúc Hệ thống (Architecture Diagram)
+![Sơ đồ Kiến trúc Hệ thống](image.png)
 
-### 1. CÆ¡ cháº¿ "Wire" cĂ¡c Provider trong dá»± Ă¡n
-Dá»± Ă¡n thá»±c hiá»‡n liĂªn káº¿t (wire) cháº·t cháº½ giá»¯a cĂ¡c Provider Ä‘á»™c láº­p:
-* **TLS Provider â” AWS Provider**: TĂ i nguyĂªn `tls_private_key.ssh` sinh khĂ³a Public Key trá»±c tiáº¿p trong bá»™ nhá»› RAM, sau Ä‘Ă³ truyá»n káº¿t quáº£ sang lĂ m tham sá»‘ Ä‘áº§u vĂ o cho `aws_key_pair.deployer` Ä‘á»ƒ náº¡p lĂªn AWS. KhĂ³a Private Key Ä‘Æ°á»£c `local_file` ghi xuá»‘ng á»• cá»©ng dáº¡ng `.pem` Ä‘á»ƒ Dev sá»­ dá»¥ng káº¿t ná»‘i SSH.
-* **AWS Provider â” Kubernetes Provider**: 
-  - Khá»‘i `provider "kubernetes"` sá»­ dá»¥ng Ä‘á»‹a chá»‰ Host cáº¥u hĂ¬nh Ä‘á»™ng: `http://${aws_instance.minikube.public_ip}:8081`.
-  - IP cá»§a EC2 Ä‘Æ°á»£c sinh ra bá»Ÿi AWS Provider sáº½ tá»± Ä‘á»™ng Ä‘Æ°á»£c truyá»n vĂ o lĂ m tham sá»‘ Ä‘áº§u cuá»‘i cho Kubernetes Provider káº¿t ná»‘i.
+### 1. Cơ chế "Wire" các Provider trong dự án
+Dự án thực hiện liên kết (wire) chặt chẽ giữa các Provider độc lập:
+* **TLS Provider ➔ AWS Provider**: Tài nguyên `tls_private_key.ssh` sinh khóa Public Key trực tiếp trong bộ nhớ RAM, sau đó truyền kết quả sang làm tham số đầu vào cho `aws_key_pair.deployer` để nạp lên AWS. Khóa Private Key được `local_file` ghi xuống ổ cứng dạng `.pem` để Dev sử dụng kết nối SSH.
+* **AWS Provider ➔ Kubernetes Provider**: 
+  - Khối `provider "kubernetes"` sử dụng địa chỉ Host cấu hình động: `http://${aws_instance.minikube.public_ip}:8081`.
+  - IP của EC2 được sinh ra bởi AWS Provider sẽ tự động được truyền vào làm tham số đầu cuối cho Kubernetes Provider kết nối.
 
-### 2. CĂ¡ch káº¿t ná»‘i Kubernetes vá»›i ALB (Expose Network ra Host)
-* **ThĂ¡ch thá»©c**: Cluster cháº¡y báº±ng Kind náº±m trong máº¡ng cĂ´ láº­p cá»§a Docker. ALB ngoĂ i Internet khĂ´ng thá»ƒ trá» trá»±c tiáº¿p vĂ o IP ná»™i bá»™ cá»§a Container Pod.
-* **Giáº£i phĂ¡p**: 
-  1. Trong `user_data.sh`, cá»¥m Kind Ä‘Æ°á»£c khá»Ÿi táº¡o vá»›i cáº¥u hĂ¬nh `extraPortMappings` Ă¡nh xáº¡ cá»•ng NodePort `30080` cá»§a container control-plane ra cá»•ng `30080` cá»§a mĂ¡y chá»§ EC2.
-  2. Báº£ng má»¥c tiĂªu cá»§a Load Balancer (`aws_lb_target_group`) Ä‘Æ°á»£c cáº¥u hĂ¬nh trá» vĂ o cá»•ng `30080` cá»§a mĂ¡y chá»§ EC2.
-  3. Khi User truy cáº­p ALB (Port 80) â” ALB chuyá»ƒn tiáº¿p tá»›i EC2 (Port 30080) â” Host EC2 Ä‘á»‹nh tuyáº¿n tiáº¿p vĂ o Service NodePort (Port 30080) â” Äi tá»›i Pod á»©ng dá»¥ng (Port 80).
+### 2. Cách kết nối Kubernetes với ALB (Expose Network ra Host)
+* **Thách thức**: Cluster chạy bằng Kind nằm trong mạng cô lập của Docker. ALB ngoài Internet không thể trỏ trực tiếp vào IP nội bộ của Container Pod.
+* **Giải pháp**: 
+  1. Trong `user_data.sh`, cụm Kind được khởi tạo với cấu hình `extraPortMappings` ánh xạ cổng NodePort `30080` của container control-plane ra cổng `30080` của máy chủ EC2.
+  2. Bảng mục tiêu của Load Balancer (`aws_lb_target_group`) được cấu hình trỏ vào cổng `30080` của máy chủ EC2.
+  3. Khi User truy cập ALB (Port 80) ➔ ALB chuyển tiếp tới EC2 (Port 30080) ➔ Host EC2 định tuyến tiếp vào Service NodePort (Port 30080) ➔ Đi tới Pod ứng dụng (Port 80).
 
-### 3. Giáº£i quyáº¿t bĂ i toĂ¡n phá»¥ thuá»™c thá»i gian (Dependency & Bootstrapping)
-* Náº¿u gá»i Kubernetes Provider ngay tá»« Ä‘áº§u, Terraform sáº½ bĂ¡o lá»—i do cá»¥m K8s chÆ°a tá»“n táº¡i trĂªn mĂ¡y áº£o EC2.
-* **Giáº£i phĂ¡p**: Sá»­ dá»¥ng tĂ i nguyĂªn Ä‘á»“ng bá»™ trung gian `null_resource.wait_for_minikube`. TĂ i nguyĂªn nĂ y báº¯t buá»™c pháº£i Ä‘á»£i EC2 khá»Ÿi táº¡o xong (`depends_on = [aws_instance.minikube]`), sau Ä‘Ă³ thá»±c hiá»‡n SSH vĂ o cháº¡y lá»‡nh `sudo cloud-init status --wait` Ä‘á»ƒ chá» script `user_data.sh` cĂ i Ä‘áº·t K8s hoĂ n táº¥t.
-* CĂ¡c tĂ i nguyĂªn Kubernetes trong file `kubernetes.tf` Ä‘á»u khai bĂ¡o `depends_on = [null_resource.wait_for_minikube]` Ä‘á»ƒ Ä‘áº£m báº£o chĂºng chá»‰ cháº¡y sau khi cá»¥m K8s Ä‘Ă£ sáºµn sĂ ng tiáº¿p nháº­n káº¿t ná»‘i.
-
----
-
-## III. Báº°NG CHá»¨NG THá»°C THI (DELIVERABLES & SCREENSHOTS)
-
-### 1. Khá»Ÿi táº¡o Dá»± Ă¡n (`terraform init`)
-Lá»‡nh khá»Ÿi táº¡o táº£i thĂ nh cĂ´ng cáº£ 4 providers cáº§n thiáº¿t vá» local.
-
-* **Minh chá»©ng thá»±c táº¿**:
-
-![Screenshot 1: Káº¿t quáº£ cháº¡y lá»‡nh terraform init thĂ nh cĂ´ng](assets/tf_init.png)
+### 3. Giải quyết bài toán phụ thuộc thời gian (Dependency & Bootstrapping)
+* Nếu gọi Kubernetes Provider ngay từ đầu, Terraform sẽ báo lỗi do cụm K8s chưa tồn tại trên máy ảo EC2.
+* **Giải pháp**: Sử dụng tài nguyên đồng bộ trung gian `null_resource.wait_for_minikube`. Tài nguyên này bắt buộc phải đợi EC2 khởi tạo xong (`depends_on = [aws_instance.minikube]`), sau đó thực hiện SSH vào chạy lệnh `sudo cloud-init status --wait` để chờ script `user_data.sh` cài đặt K8s hoàn tất.
+* Các tài nguyên Kubernetes trong file `kubernetes.tf` đều khai báo `depends_on = [null_resource.wait_for_minikube]` để đảm bảo chúng chỉ chạy sau khi cụm K8s đã sẵn sàng tiếp nhận kết nối.
 
 ---
 
-### 2. Xem Káº¿ hoáº¡ch Triá»ƒn khai (`terraform plan`)
-Terraform xĂ¢y dá»±ng thĂ nh cĂ´ng Ä‘á»“ thá»‹ phá»¥ thuá»™c vĂ  bĂ¡o cĂ¡o sáº½ táº¡o má»›i 22 tĂ i nguyĂªn.
+## III. BẰNG CHỨNG THỰC THI (DELIVERABLES & SCREENSHOTS)
 
-* **Minh chá»©ng thá»±c táº¿**:
+### 1. Khởi tạo Dự án (`terraform init`)
+Lệnh khởi tạo tải thành công cả 4 providers cần thiết về local.
 
-![Screenshot 2: Káº¿t quáº£ cháº¡y lá»‡nh terraform plan hiá»ƒn thá»‹ 22 tĂ i nguyĂªn cáº§n táº¡o](assets/tf_plan.png)
+* **Minh chứng thực tế**:
 
----
-
-### 3. Triá»ƒn khai 1-Click (`terraform apply`)
-QuĂ¡ trĂ¬nh cĂ i Ä‘áº·t tá»± Ä‘á»™ng tá»« háº¡ táº§ng Ä‘áº¿n á»©ng dá»¥ng cháº¡y hoĂ n táº¥t sau khoáº£ng 3-5 phĂºt.
-
-* **Minh chá»©ng thá»±c táº¿**:
-
-![Screenshot 3: Káº¿t quáº£ lá»‡nh terraform apply hoĂ n táº¥t thĂ nh cĂ´ng](assets/tf_apply.png)
+![Screenshot 1: Kết quả chạy lệnh terraform init thành công](assets/tf_init.png)
 
 ---
 
-### 4. MĂ¡y chá»§ EC2 vĂ  Load Balancer tráº¡ng thĂ¡i Running/Active trĂªn AWS Console
-XĂ¡c minh trá»±c quan trĂªn giao diá»‡n AWS Web Console Ä‘á»ƒ chá»©ng minh tĂ i nguyĂªn thá»±c táº¿ Ä‘Ă£ cháº¡y.
+### 2. Xem Kế hoạch Triển khai (`terraform plan`)
+Terraform xây dựng thành công đồ thị phụ thuộc và báo cáo sẽ tạo mới 22 tài nguyên.
 
-* **Minh chá»©ng EC2**:
+* **Minh chứng thực tế**:
 
-![Screenshot 4.1: MĂ¡y chá»§ EC2 Instance á»Ÿ tráº¡ng thĂ¡i Running trĂªn AWS Console](assets/ec2.png)
-
-* **Minh chá»©ng ALB**:
-
-![Screenshot 4.2: Application Load Balancer á»Ÿ tráº¡ng thĂ¡i Active trĂªn AWS Console](assets/alb.png)
+![Screenshot 2: Kết quả chạy lệnh terraform plan hiển thị 22 tài nguyên cần tạo](assets/tf_plan.png)
 
 ---
 
-### 5. á»¨ng dá»¥ng thá»±c sá»± cháº¡y trong cá»¥m K8s (KhĂ´ng cĂ i tháº³ng EC2)
-SSH vĂ o EC2 kiá»ƒm tra tráº¡ng thĂ¡i Pods vĂ  Services Ä‘á»ƒ chá»©ng minh á»©ng dá»¥ng Ä‘Æ°á»£c cĂ´ láº­p an toĂ n trong Kubernetes.
+### 3. Triển khai 1-Click (`terraform apply`)
+Quá trình cài đặt tự động từ hạ tầng đến ứng dụng chạy hoàn tất sau khoảng 3-5 phút.
 
-* **Minh chá»©ng thá»±c táº¿**:
+* **Minh chứng thực tế**:
 
-![Screenshot 5: SSH vĂ o EC2 vĂ  kiá»ƒm tra tráº¡ng thĂ¡i Pods/Services cá»§a Kubernetes](assets/k8s_verify.png)
-
----
-
-### 6. Truy cáº­p á»©ng dá»¥ng qua Load Balancer trĂªn TrĂ¬nh duyá»‡t
-Má»Ÿ Ä‘á»‹a chá»‰ URL xuáº¥t ra tá»« output `alb_dns_name` trĂªn trĂ¬nh duyá»‡t web.
-
-* **Minh chá»©ng thá»±c táº¿**:
-
-![Screenshot 6: Truy cáº­p giao diá»‡n á»©ng dá»¥ng thĂ nh cĂ´ng qua ALB DNS trĂªn trĂ¬nh duyá»‡t](assets/brower.png)
+![Screenshot 3: Kết quả lệnh terraform apply hoàn tất thành công](assets/tf_apply.png)
 
 ---
 
-### 7. Nghiá»‡m thu cÆ¡ cháº¿ tá»± Ä‘á»™ng co giĂ£n Horizontal Pod Autoscaler (HPA)
-Tá»± Ä‘á»™ng tÄƒng sá»‘ lÆ°á»£ng Pod khi CPU quĂ¡ táº£i vĂ  giáº£m Pod khi táº£i háº¡ nhiá»‡t.
+### 4. Máy chủ EC2 và Load Balancer trạng thái Running/Active trên AWS Console
+Xác minh trực quan trên giao diện AWS Web Console để chứng minh tài nguyên thực tế đã chạy.
 
-*   **Minh chá»©ng Metrics Server & HPA hoáº¡t Ä‘á»™ng á»•n Ä‘á»‹nh:**
-    Kiá»ƒm tra má»©c tiĂªu thá»¥ CPU/RAM thá»±c táº¿ cá»§a cá»¥m:
+* **Minh chứng EC2**:
+
+![Screenshot 4.1: Máy chủ EC2 Instance ở trạng thái Running trên AWS Console](assets/ec2.png)
+
+* **Minh chứng ALB**:
+
+![Screenshot 4.2: Application Load Balancer ở trạng thái Active trên AWS Console](assets/alb.png)
+
+---
+
+### 5. Ứng dụng thực sự chạy trong cụm K8s (Không cài thẳng EC2)
+SSH vào EC2 kiểm tra trạng thái Pods và Services để chứng minh ứng dụng được cô lập an toàn trong Kubernetes.
+
+* **Minh chứng thực tế**:
+
+![Screenshot 5: SSH vào EC2 và kiểm tra trạng thái Pods/Services của Kubernetes](assets/k8s_verify.png)
+
+---
+
+### 6. Truy cập ứng dụng qua Load Balancer trên Trình duyệt
+Mở địa chỉ URL xuất ra từ output `alb_dns_name` trên trình duyệt web.
+
+* **Minh chứng thực tế**:
+
+![Screenshot 6: Truy cập giao diện ứng dụng thành công qua ALB DNS trên trình duyệt](assets/brower.png)
+
+---
+
+### 7. Nghiệm thu cơ chế tự động co giãn Horizontal Pod Autoscaler (HPA)
+Tự động tăng số lượng Pod khi CPU quá tải và giảm Pod khi tải hạ nhiệt.
+
+*   **Minh chứng Metrics Server & HPA hoạt động ổn định:**
+    Kiểm tra mức tiêu thụ CPU/RAM thực tế của cụm:
     ```bash
     ubuntu@ip-10-0-1-191:~$ kubectl top nodes
     NAME                    CPU(cores)   CPU(%)   MEMORY(bytes)   MEMORY(%)   
@@ -124,45 +124,45 @@ Tá»± Ä‘á»™ng tÄƒng sá»‘ lÆ°á»£ng Pod khi CPU quĂ¡ táº£
     web-app-66dff685f9-489w2   1m           3Mi
     web-app-66dff685f9-d579k   1m           3Mi
     ```
-    Tráº¡ng thĂ¡i HPA ban Ä‘áº§u (nháº­n diá»‡n thĂ nh cĂ´ng `cpu: 0%/50%`):
+    Trạng thái HPA ban đầu (nhận diện thành công `cpu: 0%/50%`):
     ```bash
     ubuntu@ip-10-0-1-191:~$ kubectl get hpa -n lab-cd9
     NAME      REFERENCE            TARGETS       MINPODS   MAXPODS   REPLICAS   AGE
     web-hpa   Deployment/web-app   cpu: 0%/50%   2         10        2          6m49s
     ```
 
-*   **Minh chá»©ng tá»± Ä‘á»™ng Co giĂ£n Pod (Scale Out) khi stress test:**
-    Cháº¡y Pod táº¡o táº£i vĂ´ háº¡n Ä‘á»ƒ Ä‘áº©y CPU vÆ°á»£t ngÆ°á»¡ng:
+*   **Minh chứng tự động Co giãn Pod (Scale Out) khi stress test:**
+    Chạy Pod tạo tải vô hạn để đẩy CPU vượt ngưỡng:
     ```bash
     kubectl run -it --rm load-generator --image=busybox --restart=Never -n lab-cd9 -- /bin/sh -c "while true; do wget -q -O- http://web-service > /dev/null; done"
     ```
-    *Minh chá»©ng thá»±c thi lá»‡nh cháº¡y vĂ²ng láº·p vĂ´ háº¡n táº¡o táº£i:*
+    *Minh chứng thực thi lệnh chạy vòng lặp vô hạn tạo tải:*
     
     ![Spam Request](assets/spam_request.png)
     
-    GiĂ¡m sĂ¡t Ä‘á»™ng (`kubectl get hpa -n lab-cd9 -w`), CPU tÄƒng lĂªn **69%** vĂ  sá»‘ lÆ°á»£ng báº£n sao nĂ¢ng lĂªn **3 Pods** thĂ nh cĂ´ng:
+    Giám sát động (`kubectl get hpa -n lab-cd9 -w`), CPU tăng lên **69%** và số lượng bản sao nâng lên **3 Pods** thành công:
     ```bash
     ubuntu@ip-10-0-1-191:~$ kubectl get hpa -n lab-cd9 -w
     NAME      REFERENCE            TARGETS       MINPODS   MAXPODS   REPLICAS   AGE
     web-hpa   Deployment/web-app   cpu: 0%/50%   2         10        2          6m54s
     web-hpa   Deployment/web-app   cpu: 13%/50%  2         10        2          17m
     web-hpa   Deployment/web-app   cpu: 69%/50%  2         10        2          17m
-    web-hpa   Deployment/web-app   cpu: 69%/50%  2         10        3          17m  # đŸ€ Scale out lĂªn 3 Pods thĂ nh cĂ´ng!
-    web-hpa   Deployment/web-app   cpu: 33%/50%  2         10        3          18m  # Táº£i háº¡ vá» 33% nhá» chia sáº» táº£i
+    web-hpa   Deployment/web-app   cpu: 69%/50%  2         10        3          17m  # 🚀 Scale out lên 3 Pods thành công!
+    web-hpa   Deployment/web-app   cpu: 33%/50%  2         10        3          18m  # Tải hạ về 33% nhờ chia sẻ tải
     ```
-    *Minh chá»©ng HPA nháº­n diá»‡n CPU Ä‘áº¡t 69% vĂ  tá»± Ä‘á»™ng kĂ­ch hoáº¡t Scale Out lĂªn 3 Pods:*
+    *Minh chứng HPA nhận diện CPU đạt 69% và tự động kích hoạt Scale Out lên 3 Pods:*
     
     ![Scale Out Replicas](assets/scale_out_replicas.png)
     
-    *Minh chá»©ng HPA tá»± Ä‘á»™ng háº¡ sá»‘ lÆ°á»£ng Pod vá» 2 (Scale In) sau khi káº¿t thĂºc táº¡o táº£i:*
+    *Minh chứng HPA tự động hạ số lượng Pod về 2 (Scale In) sau khi kết thúc tạo tải:*
     
     ![Scale In Cooldown](assets/scale_in.png)
 
 ---
 
-### 8. Dá»n dáº¹p sáº¡ch sáº½ tĂ i nguyĂªn (`terraform destroy`)
-Há»§y bá» toĂ n bá»™ háº¡ táº§ng Ä‘á»ƒ trĂ¡nh tá»‘n phĂ­.
+### 8. Dọn dẹp sạch sẽ tài nguyên (`terraform destroy`)
+Hủy bỏ toàn bộ hạ tầng để tránh tốn phí.
 
-* **Minh chá»©ng thá»±c táº¿**:
+* **Minh chứng thực tế**:
 
-![Screenshot 7: Káº¿t quáº£ cháº¡y lá»‡nh terraform destroy dá»n dáº¹p tĂ i nguyĂªn thĂ nh cĂ´ng](assets/tf_destroy.png)
+![Screenshot 7: Kết quả chạy lệnh terraform destroy dọn dẹp tài nguyên thành công](assets/tf_destroy.png)

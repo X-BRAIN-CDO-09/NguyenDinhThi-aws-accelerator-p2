@@ -15,12 +15,8 @@ resource "kubernetes_namespace_v1" "web" {
     null_resource.wait_for_minikube,
     aws_route_table_association.public_a,
     aws_route_table_association.public_b,
-    aws_route_table_association.private_a,
-    aws_route_table_association.private_b,
     aws_route_table.public,
-    aws_route_table.private,
-    aws_internet_gateway.gw,
-    aws_nat_gateway.nat
+    aws_internet_gateway.gw
   ]
 }
 

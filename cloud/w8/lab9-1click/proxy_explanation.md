@@ -1,25 +1,25 @@
-﻿# GIáº¢I THĂCH CÆ  CHáº¾ K8S API PROXY TRONG Dá»° ĂN (LAB CD9)
+# GIẢI THÍCH CƠ CHẾ K8S API PROXY TRONG DỰ ÁN (LAB CD9)
 
-TĂ i liá»‡u nĂ y giáº£i thĂ­ch chi tiáº¿t lĂ½ do táº¡i sao dá»± Ă¡n cá»§a **Nguyá»…n ÄĂ¬nh Thi** sá»­ dá»¥ng cÆ¡ cháº¿ **Kubernetes API Proxy (`kubectl proxy`)** Ä‘á»ƒ liĂªn káº¿t (wire) giá»¯a Terraform vĂ  cá»¥m Kind Cluster trĂªn EC2, cĂ¹ng vá»›i cĂ¡c Æ°u Ä‘iá»ƒm vĂ  nhÆ°á»£c Ä‘iá»ƒm cá»§a giáº£i phĂ¡p nĂ y.
+Tài liệu này giải thích chi tiết lý do tại sao dự án của **Nguyễn Đình Thi** sử dụng cơ chế **Kubernetes API Proxy (`kubectl proxy`)** để liên kết (wire) giữa Terraform và cụm Kind Cluster trên EC2, cùng với các ưu điểm và nhược điểm của giải pháp này.
 
 ---
 
-## I. LĂ DO Sá»¬ Dá»¤NG K8S API PROXY TRONG Dá»° ĂN
+## I. LÝ DO SỬ DỤNG K8S API PROXY TRONG DỰ ÁN
 
-Trong má»™t ká»‹ch báº£n triá»ƒn khai **1-Click Automation** báº±ng Terraform, chĂºng ta gáº·p pháº£i bĂ i toĂ¡n **phá»¥ thuá»™c vĂ²ng láº·p (Bootstrapping Dependency)**:
-1. Terraform cáº§n khá»Ÿi táº¡o háº¡ táº§ng AWS (VPC, EC2) trÆ°á»›c.
-2. Sau khi EC2 khá»Ÿi Ä‘á»™ng, cá»¥m Kubernetes (Kind) má»›i Ä‘Æ°á»£c táº¡o ra thĂ´ng qua script `user_data.sh`.
-3. Khi cá»¥m K8s sáºµn sĂ ng, Terraform Kubernetes Provider cáº§n káº¿t ná»‘i vĂ o cá»¥m Ä‘á»ƒ táº¡o Namespace, Deployment, Service vĂ  HPA.
+Trong một kịch bản triển khai **1-Click Automation** bằng Terraform, chúng ta gặp phải bài toán **phụ thuộc vòng lặp (Bootstrapping Dependency)**:
+1. Terraform cần khởi tạo hạ tầng AWS (VPC, EC2) trước.
+2. Sau khi EC2 khởi động, cụm Kubernetes (Kind) mới được tạo ra thông qua script `user_data.sh`.
+3. Khi cụm K8s sẵn sàng, Terraform Kubernetes Provider cần kết nối vào cụm để tạo Namespace, Deployment, Service và HPA.
 
-### Thá»­ thĂ¡ch:
-ThĂ´ng thÆ°á»ng, Ä‘á»ƒ káº¿t ná»‘i vĂ o cá»¥m K8s, ta cáº§n file cáº¥u hĂ¬nh xĂ¡c thá»±c (`kubeconfig`), chá»©ng chá»‰ TLS (`client-certificate`, `client-key`) hoáº·c Token. Tuy nhiĂªn, cĂ¡c file nĂ y náº±m trĂªn mĂ¡y áº£o EC2 vá»«a táº¡o vĂ  **khĂ´ng tá»“n táº¡i á»Ÿ mĂ¡y local** cháº¡y lá»‡nh Terraform lĂºc báº¯t Ä‘áº§u.
+### Thử thách:
+Thông thường, để kết nối vào cụm K8s, ta cần file cấu hình xác thực (`kubeconfig`), chứng chỉ TLS (`client-certificate`, `client-key`) hoặc Token. Tuy nhiên, các file này nằm trên máy ảo EC2 vừa tạo và **không tồn tại ở máy local** chạy lệnh Terraform lúc bắt đầu.
 
-### Giáº£i phĂ¡p:
-Trong script [user_data.sh](file:///e:/x-brain/W8/NguyenDinhThi-aws-accelerator-p2/cloud/w8/lab-cd9/scripts/user_data.sh#L69-L76), ta cháº¡y má»™t tiáº¿n trĂ¬nh ngáº§m (background process) Ä‘á»ƒ má»Ÿ cá»•ng Proxy:
+### Giải pháp:
+Trong script [user_data.sh](file:///e:/x-brain/W8/NguyenDinhThi-aws-accelerator-p2/cloud/w8/lab-cd9/scripts/user_data.sh#L69-L76), ta chạy một tiến trình ngầm (background process) để mở cổng Proxy:
 ```bash
 nohup kubectl proxy --port=8081 --address='0.0.0.0' --accept-hosts='^.*$' > /var/log/kubectl-proxy.log 2>&1 &
 ```
-Lá»‡nh nĂ y chuyá»ƒn Ä‘á»•i cá»•ng API Server báº£o máº­t cá»§a Kubernetes (yĂªu cáº§u chá»©ng chá»‰ phá»©c táº¡p) thĂ nh má»™t cá»•ng HTTP khĂ´ng cáº§n xĂ¡c thá»±c á»Ÿ cá»•ng `8081`. Nhá» váº­y, á»Ÿ file [providers.tf](file:///e:/x-brain/W8/NguyenDinhThi-aws-accelerator-p2/cloud/w8/lab-cd9/providers.tf#L33-L35), Terraform chá»‰ cáº§n káº¿t ná»‘i qua giao thá»©c HTTP Ä‘Æ¡n giáº£n:
+Lệnh này chuyển đổi cổng API Server bảo mật của Kubernetes (yêu cầu chứng chỉ phức tạp) thành một cổng HTTP không cần xác thực ở cổng `8081`. Nhờ vậy, ở file [providers.tf](file:///e:/x-brain/W8/NguyenDinhThi-aws-accelerator-p2/cloud/w8/lab-cd9/providers.tf#L33-L35), Terraform chỉ cần kết nối qua giao thức HTTP đơn giản:
 ```terraform
 provider "kubernetes" {
   host = "http://${aws_instance.minikube.public_ip}:8081"
@@ -28,35 +28,35 @@ provider "kubernetes" {
 
 ---
 
-## II. PHĂ‚N TĂCH Æ¯U ÄIá»‚M & NHÆ¯á»¢C ÄIá»‚M
+## II. PHÂN TÍCH ƯU ĐIỂM & NHƯỢC ĐIỂM
 
-### 1. Æ¯u Ä‘iá»ƒm (Advantages)
+### 1. Ưu điểm (Advantages)
 
-* **Quáº£n lĂ½ Tráº¡ng thĂ¡i Táº­p trung (Terraform State Management) â€” Äiá»ƒm vÆ°á»£t trá»™i nháº¥t**:
-  * **Sá»± khĂ¡c biá»‡t**: CĂ¡c thĂ nh viĂªn khĂ¡c chá»n giáº£i phĂ¡p "á»¦y quyá»n hoĂ n toĂ n" cho EC2 tá»± cĂ i vĂ  tá»± deploy (Terraform local táº¡o xong EC2 lĂ  ngáº¯t káº¿t ná»‘i). CĂ²n báº¡n chá»n cĂ¡ch **"Quáº£n lĂ½ táº­p trung"** (Terraform local vá»«a táº¡o háº¡ táº§ng AWS vá»«a trá»±c tiáº¿p káº¿t ná»‘i qua API Proxy Ä‘á»ƒ Ä‘iá»u khiá»ƒn vĂ  giĂ¡m sĂ¡t cá»¥m K8s).
-  * **Lá»£i Ă­ch**: Khi sá»­ dá»¥ng Kubernetes Provider trong Terraform, toĂ n bá»™ tĂ i nguyĂªn K8s (Namespace, Deployment, ConfigMap, Service, HPA) Ä‘á»u Ä‘Æ°á»£c theo dĂµi cháº·t cháº½ trong file **`terraform.tfstate`**.
-  * **PhĂ¡t hiá»‡n sai lá»‡ch (Drift Detection)**: Náº¿u cĂ³ ai Ä‘Ă³ vĂ´ tĂ¬nh hoáº·c cá»‘ Ă½ vĂ o cá»¥m K8s xĂ³a Ä‘i má»™t Pod hoáº·c thay Ä‘á»•i cáº¥u hĂ¬nh Service, lá»‡nh `terraform plan/apply` tiáº¿p theo á»Ÿ mĂ¡y local cá»§a báº¡n sáº½ láº­p tá»©c phĂ¡t hiá»‡n ra sá»± sai lá»‡ch (drift) nĂ y vĂ  tá»± Ä‘á»™ng khĂ´i phá»¥c (re-create/update) tĂ i nguyĂªn vá» Ä‘Ăºng tráº¡ng thĂ¡i mong muá»‘n. á» giáº£i phĂ¡p cháº¡y script cá»§a cĂ¡c báº¡n khĂ¡c, Terraform hoĂ n toĂ n "mĂ¹" trÆ°á»›c cĂ¡c tĂ i nguyĂªn K8s nĂ y vĂ  khĂ´ng thá»ƒ kiá»ƒm soĂ¡t hay sá»­a chá»¯a khi cĂ³ lá»—i xáº£y ra.
-  * **VĂ²ng Ä‘á»i nháº¥t quĂ¡n (Unified Lifecycle)**: Khi báº¡n cháº¡y `terraform destroy`, Terraform sáº½ dá»n sáº¡ch sáº½ tá»« á»©ng dá»¥ng K8s cho Ä‘áº¿n máº¡ng lÆ°á»›i AWS theo Ä‘Ăºng thá»© tá»± Æ°u tiĂªn. Giáº£i phĂ¡p dĂ¹ng shell script cá»§a cĂ¡c báº¡n khĂ¡c sáº½ Ä‘á»ƒ láº¡i cĂ¡c tĂ i nguyĂªn K8s "má»“ cĂ´i" trong container cá»§a EC2, vĂ  chĂºng chá»‰ bá»‹ triá»‡t tiĂªu khi mĂ¡y áº£o EC2 bá»‹ táº¯t hoĂ n toĂ n.
-* **Hiá»‡n thá»±c hĂ³a 1-Click Deployment**: Cho phĂ©p hoĂ n thĂ nh toĂ n bá»™ tiáº¿n trĂ¬nh tá»« táº¡o háº¡ táº§ng Cloud Ä‘áº¿n deploy á»©ng dá»¥ng K8s chá»‰ trong duy nháº¥t má»™t lá»‡nh `terraform apply` mĂ  khĂ´ng cáº§n ngáº¯t quĂ£ng giá»¯a chá»«ng Ä‘á»ƒ cáº¥u hĂ¬nh thá»§ cĂ´ng hoáº·c láº¥y file chá»©ng chá»‰.
-* **ÄÆ¡n giáº£n hĂ³a cáº¥u hĂ¬nh cáº¥u trĂºc mĂ£ nguá»“n (HCL)**: Loáº¡i bá» sá»± phá»©c táº¡p khi pháº£i viáº¿t code Terraform Ä‘á»ƒ download file `kubeconfig` tá»« EC2 vá» mĂ¡y local báº±ng SSH, rá»“i náº¡p Certificate Ä‘á»™ng vĂ o Provider.
-* **KhĂ´ng phá»¥ thuá»™c vĂ o cáº¥u hĂ¬nh client local**: Láº­p trĂ¬nh viĂªn cháº¡y lá»‡nh á»Ÿ báº¥t ká»³ mĂ¡y tĂ­nh nĂ o cÅ©ng cĂ³ thá»ƒ deploy Ä‘Æ°á»£c, khĂ´ng cáº§n cĂ³ sáºµn cĂ¡c cĂ´ng cá»¥ giáº£i mĂ£ hoáº·c phĂ¢n quyá»n file trĂªn há»‡ Ä‘iá»u hĂ nh local.
+* **Quản lý Trạng thái Tập trung (Terraform State Management) — Điểm vượt trội nhất**:
+  * **Sự khác biệt**: Các thành viên khác chọn giải pháp "Ủy quyền hoàn toàn" cho EC2 tự cài và tự deploy (Terraform local tạo xong EC2 là ngắt kết nối). Còn bạn chọn cách **"Quản lý tập trung"** (Terraform local vừa tạo hạ tầng AWS vừa trực tiếp kết nối qua API Proxy để điều khiển và giám sát cụm K8s).
+  * **Lợi ích**: Khi sử dụng Kubernetes Provider trong Terraform, toàn bộ tài nguyên K8s (Namespace, Deployment, ConfigMap, Service, HPA) đều được theo dõi chặt chẽ trong file **`terraform.tfstate`**.
+  * **Phát hiện sai lệch (Drift Detection)**: Nếu có ai đó vô tình hoặc cố ý vào cụm K8s xóa đi một Pod hoặc thay đổi cấu hình Service, lệnh `terraform plan/apply` tiếp theo ở máy local của bạn sẽ lập tức phát hiện ra sự sai lệch (drift) này và tự động khôi phục (re-create/update) tài nguyên về đúng trạng thái mong muốn. Ở giải pháp chạy script của các bạn khác, Terraform hoàn toàn "mù" trước các tài nguyên K8s này và không thể kiểm soát hay sửa chữa khi có lỗi xảy ra.
+  * **Vòng đời nhất quán (Unified Lifecycle)**: Khi bạn chạy `terraform destroy`, Terraform sẽ dọn sạch sẽ từ ứng dụng K8s cho đến mạng lưới AWS theo đúng thứ tự ưu tiên. Giải pháp dùng shell script của các bạn khác sẽ để lại các tài nguyên K8s "mồ côi" trong container của EC2, và chúng chỉ bị triệt tiêu khi máy ảo EC2 bị tắt hoàn toàn.
+* **Hiện thực hóa 1-Click Deployment**: Cho phép hoàn thành toàn bộ tiến trình từ tạo hạ tầng Cloud đến deploy ứng dụng K8s chỉ trong duy nhất một lệnh `terraform apply` mà không cần ngắt quãng giữa chừng để cấu hình thủ công hoặc lấy file chứng chỉ.
+* **Đơn giản hóa cấu hình cấu trúc mã nguồn (HCL)**: Loại bỏ sự phức tạp khi phải viết code Terraform để download file `kubeconfig` từ EC2 về máy local bằng SSH, rồi nạp Certificate động vào Provider.
+* **Không phụ thuộc vào cấu hình client local**: Lập trình viên chạy lệnh ở bất kỳ máy tính nào cũng có thể deploy được, không cần có sẵn các công cụ giải mã hoặc phân quyền file trên hệ điều hành local.
 
-### 2. NhÆ°á»£c Ä‘iá»ƒm & Rá»§i ro (Disadvantages & Risks)
+### 2. Nhược điểm & Rủi ro (Disadvantages & Risks)
 
-* **Rá»§i ro báº£o máº­t cá»±c ká»³ lá»›n (Security Risk)**: 
-  * Cá»•ng proxy `8081` cháº¥p nháº­n má»i káº¿t ná»‘i khĂ´ng cáº§n xĂ¡c thá»±c (`--accept-hosts='^.*$'`) vĂ  cĂ³ toĂ n quyá»n tá»‘i cao (`cluster-admin`) trĂªn cá»¥m K8s.
-  * Náº¿u hacker quĂ©t tháº¥y cá»•ng nĂ y Ä‘ang má»Ÿ cĂ´ng khai trĂªn Internet, há» cĂ³ thá»ƒ chiáº¿m quyá»n Ä‘iá»u khiá»ƒn hoĂ n toĂ n cá»¥m Kubernetes cá»§a báº¡n.
-* **Truyá»n tin khĂ´ng mĂ£ hĂ³a (Plaintext Traffic)**: Dá»¯ liá»‡u giao tiáº¿p giá»¯a mĂ¡y local (cháº¡y Terraform) vĂ  EC2 truyá»n qua HTTP thay vĂ¬ HTTPS, dáº«n Ä‘áº¿n nguy cÆ¡ bá»‹ táº¥n cĂ´ng nghe lĂ©n (Man-in-the-Middle) Ä‘á»ƒ Ä‘Ă¡nh cáº¯p thĂ´ng tin nháº¡y cáº£m.
-* **Rá»§i ro sáº­p tiáº¿n trĂ¬nh ná»n (Dependency on Background Process)**: Náº¿u tiáº¿n trĂ¬nh cháº¡y ná»n `kubectl proxy` trĂªn EC2 bá»‹ sáº­p (do thiáº¿u tĂ i nguyĂªn, crash...), Terraform á»Ÿ local sáº½ láº­p tá»©c máº¥t quyá»n quáº£n lĂ½ K8s dĂ¹ cá»¥m K8s bĂªn trong váº«n Ä‘ang hoáº¡t Ä‘á»™ng bĂ¬nh thÆ°á»ng.
+* **Rủi ro bảo mật cực kỳ lớn (Security Risk)**: 
+  * Cổng proxy `8081` chấp nhận mọi kết nối không cần xác thực (`--accept-hosts='^.*$'`) và có toàn quyền tối cao (`cluster-admin`) trên cụm K8s.
+  * Nếu hacker quét thấy cổng này đang mở công khai trên Internet, họ có thể chiếm quyền điều khiển hoàn toàn cụm Kubernetes của bạn.
+* **Truyền tin không mã hóa (Plaintext Traffic)**: Dữ liệu giao tiếp giữa máy local (chạy Terraform) và EC2 truyền qua HTTP thay vì HTTPS, dẫn đến nguy cơ bị tấn công nghe lén (Man-in-the-Middle) để đánh cắp thông tin nhạy cảm.
+* **Rủi ro sập tiến trình nền (Dependency on Background Process)**: Nếu tiến trình chạy nền `kubectl proxy` trên EC2 bị sập (do thiếu tài nguyên, crash...), Terraform ở local sẽ lập tức mất quyền quản lý K8s dù cụm K8s bên trong vẫn đang hoạt động bình thường.
 
 ---
 
-## III. CĂCH KHáº®C PHá»¤C Rá»¦I RO TRONG Dá»° ĂN NĂ€Y
+## III. CÁCH KHẮC PHỤC RỦI RO TRONG DỰ ÁN NÀY
 
-Äá»ƒ sá»­ dá»¥ng cÆ¡ cháº¿ nĂ y má»™t cĂ¡ch an toĂ n cho bĂ i Lab, dá»± Ă¡n Ä‘Ă£ triá»ƒn khai giáº£i phĂ¡p báº£o máº­t nhiá»u lá»›p:
+Để sử dụng cơ chế này một cách an toàn cho bài Lab, dự án đã triển khai giải pháp bảo mật nhiều lớp:
 
-1. **Giá»›i háº¡n IP nghiĂªm ngáº·t táº¡i Security Group (EC2-SG)**: 
-   Táº¡i file [security_groups.tf](file:///e:/x-brain/W8/NguyenDinhThi-aws-accelerator-p2/cloud/w8/lab-cd9/security_groups.tf#L55-L61), cá»•ng `8081` chá»‰ Ä‘Æ°á»£c má»Ÿ Inbound duy nháº¥t cho IP cĂ¡ nhĂ¢n cá»§a Developer (`var.my_ip`). Táº¥t cáº£ cĂ¡c IP khĂ¡c trĂªn tháº¿ giá»›i quĂ©t cá»•ng nĂ y Ä‘á»u bá»‹ AWS drop traffic ngay láº­p tá»©c.
-2. **Khuyáº¿n nghá»‹ mĂ´i trÆ°á»ng thá»±c táº¿ (Production)**:
-   * KhĂ´ng sá»­ dá»¥ng `kubectl proxy` public.
-   * Sá»­ dá»¥ng cÆ¡ cháº¿ xĂ¡c thá»±c **OIDC (OpenID Connect)** hoáº·c dĂ¹ng **VPN/Bastion Host** Ä‘á»ƒ káº¿t ná»‘i an toĂ n báº±ng HTTPS thĂ´ng qua file kubeconfig Ä‘Æ°á»£c mĂ£ hĂ³a báº£o máº­t.
+1. **Giới hạn IP nghiêm ngặt tại Security Group (EC2-SG)**: 
+   Tại file [security_groups.tf](file:///e:/x-brain/W8/NguyenDinhThi-aws-accelerator-p2/cloud/w8/lab-cd9/security_groups.tf#L55-L61), cổng `8081` chỉ được mở Inbound duy nhất cho IP cá nhân của Developer (`var.my_ip`). Tất cả các IP khác trên thế giới quét cổng này đều bị AWS drop traffic ngay lập tức.
+2. **Khuyến nghị môi trường thực tế (Production)**:
+   * Không sử dụng `kubectl proxy` public.
+   * Sử dụng cơ chế xác thực **OIDC (OpenID Connect)** hoặc dùng **VPN/Bastion Host** để kết nối an toàn bằng HTTPS thông qua file kubeconfig được mã hóa bảo mật.

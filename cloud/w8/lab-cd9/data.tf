@@ -3,9 +3,6 @@
 # Truy van thong tin dong tu AWS truoc khi build ha tang
 # ==============================================================================
 
-# 0. Lay thong tin AWS Account ID hien tai (dung de dat ten S3 Bucket duy nhat toan cau)
-data "aws_caller_identity" "current" {}
-
 # 1. Tim kiem Ubuntu 22.04 AMI moi nhat tu nha phat hanh Canonical
 data "aws_ami" "ubuntu" {
   most_recent = true

@@ -1,221 +1,221 @@
-﻿# đŸ“ TĂ i Liá»‡u Ă”n Táº­p: LAB CD9 â€” 1-Click Automation
+# 📚 Tài Liệu Ôn Tập: LAB CD9 — 1-Click Automation
 
-TĂ i liá»‡u nĂ y tá»•ng há»£p toĂ n bá»™ kiáº¿n thá»©c báº¡n cáº§n náº¯m vá»¯ng Ä‘á»ƒ tá»± tin thuyáº¿t trĂ¬nh vĂ  tráº£ lá»i má»i cĂ¢u há»i vá» bĂ i Lab CD9.
+Tài liệu này tổng hợp toàn bộ kiến thức bạn cần nắm vững để tự tin thuyết trình và trả lời mọi câu hỏi về bài Lab CD9.
 
 ---
 
-## Pháº§n 1: Terraform â€” CĂ´ng Cá»¥ Tá»± Äá»™ng HĂ³a Háº¡ Táº§ng
+## Phần 1: Terraform — Công Cụ Tự Động Hóa Hạ Tầng
 
-### 1.1. Terraform lĂ  gĂ¬?
-- LĂ  cĂ´ng cá»¥ **Infrastructure as Code (IaC)** cá»§a HashiCorp.
-- Cho phĂ©p báº¡n viáº¿t code (ngĂ´n ngá»¯ HCL) Ä‘á»ƒ mĂ´ táº£ háº¡ táº§ng, sau Ä‘Ă³ Terraform tá»± Ä‘á»™ng dá»±ng/xĂ³a háº¡ táº§ng cho báº¡n.
-- **Declarative (Khai bĂ¡o):** Báº¡n chá»‰ cáº§n mĂ´ táº£ tráº¡ng thĂ¡i mong muá»‘n, Terraform tá»± tĂ¬m cĂ¡ch thá»±c hiá»‡n.
+### 1.1. Terraform là gì?
+- Là công cụ **Infrastructure as Code (IaC)** của HashiCorp.
+- Cho phép bạn viết code (ngôn ngữ HCL) để mô tả hạ tầng, sau đó Terraform tự động dựng/xóa hạ tầng cho bạn.
+- **Declarative (Khai báo):** Bạn chỉ cần mô tả trạng thái mong muốn, Terraform tự tìm cách thực hiện.
 
-### 1.2. CĂ¡c lá»‡nh cÆ¡ báº£n (Pháº£i thuá»™c!)
-| Lá»‡nh | Má»¥c Ä‘Ă­ch |
+### 1.2. Các lệnh cơ bản (Phải thuộc!)
+| Lệnh | Mục đích |
 |---|---|
-| `terraform init` | Táº£i cĂ¡c Provider cáº§n thiáº¿t, khá»Ÿi táº¡o thÆ° má»¥c `.terraform` |
-| `terraform plan` | Xem trÆ°á»›c nhá»¯ng gĂ¬ Terraform sáº½ táº¡o/sá»­a/xĂ³a (dry-run) |
-| `terraform apply` | Thá»±c thi káº¿ hoáº¡ch, dá»±ng háº¡ táº§ng tháº­t trĂªn cloud |
-| `terraform destroy` | XĂ³a sáº¡ch toĂ n bá»™ háº¡ táº§ng Ä‘Ă£ táº¡o |
-| `terraform state list` | Liá»‡t kĂª táº¥t cáº£ tĂ i nguyĂªn Ä‘ang Ä‘Æ°á»£c Terraform quáº£n lĂ½ |
-| `terraform state rm <resource>` | Loáº¡i bá» 1 tĂ i nguyĂªn khá»i state (khĂ´ng xĂ³a trĂªn cloud) |
+| `terraform init` | Tải các Provider cần thiết, khởi tạo thư mục `.terraform` |
+| `terraform plan` | Xem trước những gì Terraform sẽ tạo/sửa/xóa (dry-run) |
+| `terraform apply` | Thực thi kế hoạch, dựng hạ tầng thật trên cloud |
+| `terraform destroy` | Xóa sạch toàn bộ hạ tầng đã tạo |
+| `terraform state list` | Liệt kê tất cả tài nguyên đang được Terraform quản lý |
+| `terraform state rm <resource>` | Loại bỏ 1 tài nguyên khỏi state (không xóa trên cloud) |
 
-### 1.3. Terraform State (`terraform.tfstate`) lĂ  gĂ¬?
-- LĂ  file JSON lÆ°u trá»¯ **tráº¡ng thĂ¡i hiá»‡n táº¡i** cá»§a toĂ n bá»™ háº¡ táº§ng mĂ  Terraform Ä‘ang quáº£n lĂ½.
-- Má»—i láº§n cháº¡y `plan` hoáº·c `apply`, Terraform so sĂ¡nh **code má»›i** vá»›i **state cÅ©** Ä‘á»ƒ tĂ¬m ra sá»± khĂ¡c biá»‡t cáº§n thá»±c hiá»‡n.
-- **Quan trá»ng:** Náº¿u xĂ³a file nĂ y, Terraform sáº½ "quĂªn" háº¿t táº¥t cáº£ tĂ i nguyĂªn vĂ  táº¡o má»›i láº¡i tá»« Ä‘áº§u (tĂ i nguyĂªn cÅ© váº«n cháº¡y trĂªn AWS nhÆ°ng Terraform khĂ´ng biáº¿t).
+### 1.3. Terraform State (`terraform.tfstate`) là gì?
+- Là file JSON lưu trữ **trạng thái hiện tại** của toàn bộ hạ tầng mà Terraform đang quản lý.
+- Mỗi lần chạy `plan` hoặc `apply`, Terraform so sánh **code mới** với **state cũ** để tìm ra sự khác biệt cần thực hiện.
+- **Quan trọng:** Nếu xóa file này, Terraform sẽ "quên" hết tất cả tài nguyên và tạo mới lại từ đầu (tài nguyên cũ vẫn chạy trên AWS nhưng Terraform không biết).
 
-### 1.4. Provider lĂ  gĂ¬? BĂ i lab dĂ¹ng bao nhiĂªu Provider?
-- Provider lĂ  **plugin káº¿t ná»‘i** giĂºp Terraform giao tiáº¿p vá»›i cĂ¡c ná»n táº£ng bĂªn ngoĂ i (AWS, Kubernetes, v.v.).
-- BĂ i lab sá»­ dá»¥ng **5 Provider**:
+### 1.4. Provider là gì? Bài lab dùng bao nhiêu Provider?
+- Provider là **plugin kết nối** giúp Terraform giao tiếp với các nền tảng bên ngoài (AWS, Kubernetes, v.v.).
+- Bài lab sử dụng **5 Provider**:
 
-| Provider | Vai trĂ² | File khai bĂ¡o |
+| Provider | Vai trò | File khai báo |
 |---|---|---|
-| **aws** | Táº¡o/quáº£n lĂ½ tĂ i nguyĂªn trĂªn AWS (VPC, EC2, ALB...) | `providers.tf` |
-| **tls** | Sinh cáº·p khĂ³a SSH Private/Public key tá»± Ä‘á»™ng | `key_pair.tf` |
-| **kubernetes** | Káº¿t ná»‘i qua proxy 8081 Ä‘á»ƒ táº¡o Namespace, Deployment, Service | `kubernetes.tf` |
-| **local** | Ghi file private key `.pem` xuá»‘ng mĂ¡y tĂ­nh cá»§a báº¡n | `key_pair.tf` |
-| **null** | Cháº¡y script SSH kiá»ƒm tra EC2 Ä‘Ă£ sáºµn sĂ ng chÆ°a (`null_resource`) | `ec2.tf` |
+| **aws** | Tạo/quản lý tài nguyên trên AWS (VPC, EC2, ALB...) | `providers.tf` |
+| **tls** | Sinh cặp khóa SSH Private/Public key tự động | `key_pair.tf` |
+| **kubernetes** | Kết nối qua proxy 8081 để tạo Namespace, Deployment, Service | `kubernetes.tf` |
+| **local** | Ghi file private key `.pem` xuống máy tính của bạn | `key_pair.tf` |
+| **null** | Chạy script SSH kiểm tra EC2 đã sẵn sàng chưa (`null_resource`) | `ec2.tf` |
 
-### 1.5. CĂ¡c khĂ¡i niá»‡m HCL quan trá»ng
-| KhĂ¡i niá»‡m | Giáº£i thĂ­ch | VĂ­ dá»¥ trong lab |
+### 1.5. Các khái niệm HCL quan trọng
+| Khái niệm | Giải thích | Ví dụ trong lab |
 |---|---|---|
-| `resource` | Khai bĂ¡o 1 tĂ i nguyĂªn cáº§n táº¡o | `resource "aws_vpc" "main" { ... }` |
-| `data` | Truy váº¥n dá»¯ liá»‡u cĂ³ sáºµn (khĂ´ng táº¡o má»›i) | `data "aws_ami" "ubuntu" { ... }` â€” TĂ¬m AMI Ubuntu má»›i nháº¥t |
-| `variable` | Biáº¿n Ä‘áº§u vĂ o Ä‘á»ƒ tĂ¹y chá»‰nh | `var.aws_region`, `var.app_port` |
-| `locals` | GiĂ¡ trá»‹ tĂ­nh toĂ¡n ná»™i bá»™, dĂ¹ng láº¡i nhiá»u láº§n | `local.name_prefix = "lab-cd9"` |
-| `output` | Xuáº¥t káº¿t quáº£ sau khi apply xong | `output "alb_dns_name"` |
-| `depends_on` | RĂ ng buá»™c thá»© tá»± táº¡o/xĂ³a tĂ i nguyĂªn | Namespace phá»¥ thuá»™c vĂ o IGW vĂ  Route Table |
-| `templatefile()` | Äá»c file vĂ  thay tháº¿ biáº¿n bĂªn trong | `templatefile("scripts/user_data.sh", { proxy_port = 8081 })` |
+| `resource` | Khai báo 1 tài nguyên cần tạo | `resource "aws_vpc" "main" { ... }` |
+| `data` | Truy vấn dữ liệu có sẵn (không tạo mới) | `data "aws_ami" "ubuntu" { ... }` — Tìm AMI Ubuntu mới nhất |
+| `variable` | Biến đầu vào để tùy chỉnh | `var.aws_region`, `var.app_port` |
+| `locals` | Giá trị tính toán nội bộ, dùng lại nhiều lần | `local.name_prefix = "lab-cd9"` |
+| `output` | Xuất kết quả sau khi apply xong | `output "alb_dns_name"` |
+| `depends_on` | Ràng buộc thứ tự tạo/xóa tài nguyên | Namespace phụ thuộc vào IGW và Route Table |
+| `templatefile()` | Đọc file và thay thế biến bên trong | `templatefile("scripts/user_data.sh", { proxy_port = 8081 })` |
 
 ---
 
-## Pháº§n 2: AWS â€” Háº¡ Táº§ng Cloud
+## Phần 2: AWS — Hạ Tầng Cloud
 
 ### 2.1. VPC (Virtual Private Cloud)
-- LĂ  **máº¡ng áº£o riĂªng** cá»§a báº¡n trĂªn AWS, hoĂ n toĂ n cĂ¡ch ly vá»›i cĂ¡c tĂ i khoáº£n khĂ¡c.
-- CIDR trong lab: `10.0.0.0/16` â€” nghÄ©a lĂ  cĂ³ tá»•ng cá»™ng 65,536 Ä‘á»‹a chá»‰ IP kháº£ dá»¥ng.
-- File cáº¥u hĂ¬nh: `vpc.tf`
+- Là **mạng ảo riêng** của bạn trên AWS, hoàn toàn cách ly với các tài khoản khác.
+- CIDR trong lab: `10.0.0.0/16` — nghĩa là có tổng cộng 65,536 địa chỉ IP khả dụng.
+- File cấu hình: `vpc.tf`
 
-### 2.2. Subnet (Máº¡ng con)
-- LĂ  **phĂ¢n vĂ¹ng nhá» hÆ¡n** bĂªn trong VPC.
-- Lab sá»­ dá»¥ng **2 Public Subnet** á»Ÿ 2 vĂ¹ng kháº£ dá»¥ng (AZ) khĂ¡c nhau:
-  - **Subnet A** (`10.0.1.0/24`) â€” AZ `ap-southeast-1a` â€” Cháº¡y EC2 vĂ  ALB.
-  - **Subnet B** (`10.0.2.0/24`) â€” AZ `ap-southeast-1b` â€” Cháº¡y ALB (Ä‘áº£m báº£o High Availability).
-- **Táº¡i sao cáº§n 2 Subnet?** AWS yĂªu cáº§u ALB pháº£i gáº¯n vĂ o **Ă­t nháº¥t 2 Subnet thuá»™c 2 AZ khĂ¡c nhau** Ä‘á»ƒ Ä‘áº£m báº£o tĂ­nh sáºµn sĂ ng cao (HA).
+### 2.2. Subnet (Mạng con)
+- Là **phân vùng nhỏ hơn** bên trong VPC.
+- Lab sử dụng **2 Public Subnet** ở 2 vùng khả dụng (AZ) khác nhau:
+  - **Subnet A** (`10.0.1.0/24`) — AZ `ap-southeast-1a` — Chạy EC2 và ALB.
+  - **Subnet B** (`10.0.2.0/24`) — AZ `ap-southeast-1b` — Chạy ALB (đảm bảo High Availability).
+- **Tại sao cần 2 Subnet?** AWS yêu cầu ALB phải gắn vào **ít nhất 2 Subnet thuộc 2 AZ khác nhau** để đảm bảo tính sẵn sàng cao (HA).
 
 ### 2.3. Internet Gateway (IGW)
-- LĂ  **cá»•ng káº¿t ná»‘i** giá»¯a VPC vĂ  Internet bĂªn ngoĂ i.
-- Náº¿u khĂ´ng cĂ³ IGW, cĂ¡c mĂ¡y chá»§ bĂªn trong VPC sáº½ **khĂ´ng thá»ƒ** truy cáº­p hoáº·c bá»‹ truy cáº­p tá»« Internet.
+- Là **cổng kết nối** giữa VPC và Internet bên ngoài.
+- Nếu không có IGW, các máy chủ bên trong VPC sẽ **không thể** truy cập hoặc bị truy cập từ Internet.
 
-### 2.4. Route Table (Báº£ng Ä‘á»‹nh tuyáº¿n)
-- Chá»©a cĂ¡c **quy táº¯c Ä‘iá»u hÆ°á»›ng traffic** trong VPC.
-- Trong lab: Má»i traffic Ä‘i ra ngoĂ i (`0.0.0.0/0`) sáº½ Ä‘Æ°á»£c chuyá»ƒn qua Internet Gateway.
-- Route Table Ä‘Æ°á»£c **liĂªn káº¿t (associate)** vá»›i cáº£ 2 Subnet A vĂ  B.
+### 2.4. Route Table (Bảng định tuyến)
+- Chứa các **quy tắc điều hướng traffic** trong VPC.
+- Trong lab: Mọi traffic đi ra ngoài (`0.0.0.0/0`) sẽ được chuyển qua Internet Gateway.
+- Route Table được **liên kết (associate)** với cả 2 Subnet A và B.
 
-### 2.5. Security Group (NhĂ³m báº£o máº­t)
-- Hoáº¡t Ä‘á»™ng nhÆ° **tÆ°á»ng lá»­a áº£o** kiá»ƒm soĂ¡t traffic vĂ o/ra cho tá»«ng tĂ i nguyĂªn.
-- Lab cĂ³ **2 Security Group**:
+### 2.5. Security Group (Nhóm bảo mật)
+- Hoạt động như **tường lửa ảo** kiểm soát traffic vào/ra cho từng tài nguyên.
+- Lab có **2 Security Group**:
 
-| Security Group | Inbound (VĂ o) | Outbound (Ra) |
+| Security Group | Inbound (Vào) | Outbound (Ra) |
 |---|---|---|
-| **ALB-SG** | Port 80 (HTTP) tá»« `0.0.0.0/0` (toĂ n bá»™ Internet) | Táº¥t cáº£ |
-| **EC2-SG** | Port 30080 (NodePort) chá»‰ tá»« ALB-SG | Táº¥t cáº£ |
-| | Port 22 (SSH) chá»‰ tá»« `var.my_ip` | |
-| | Port 8081 (K8s Proxy) chá»‰ tá»« `var.my_ip` | |
+| **ALB-SG** | Port 80 (HTTP) từ `0.0.0.0/0` (toàn bộ Internet) | Tất cả |
+| **EC2-SG** | Port 30080 (NodePort) chỉ từ ALB-SG | Tất cả |
+| | Port 22 (SSH) chỉ từ `var.my_ip` | |
+| | Port 8081 (K8s Proxy) chỉ từ `var.my_ip` | |
 
-- **CĂ¢u há»i hay gáº·p:** *Táº¡i sao EC2 khĂ´ng má»Ÿ port 30080 cho `0.0.0.0/0`?*
-  - VĂ¬ ngÆ°á»i dĂ¹ng khĂ´ng truy cáº­p trá»±c tiáº¿p vĂ o EC2. Há» truy cáº­p qua ALB (port 80), ALB sáº½ forward tá»›i EC2 (port 30080). NĂªn chá»‰ cáº§n cho phĂ©p ALB-SG káº¿t ná»‘i tá»›i port 30080 lĂ  Ä‘á»§.
+- **Câu hỏi hay gặp:** *Tại sao EC2 không mở port 30080 cho `0.0.0.0/0`?*
+  - Vì người dùng không truy cập trực tiếp vào EC2. Họ truy cập qua ALB (port 80), ALB sẽ forward tới EC2 (port 30080). Nên chỉ cần cho phép ALB-SG kết nối tới port 30080 là đủ.
 
-### 2.6. EC2 Instance (MĂ¡y chá»§ áº£o)
-- Loáº¡i instance: **t3.medium** (2 vCPU, 4GB RAM) â€” Ä‘á»§ sá»©c cháº¡y Kind Cluster.
-- AMI: **Ubuntu 22.04 LTS** (tĂ¬m tá»± Ä‘á»™ng báº±ng `data "aws_ami"`).
-- **User Data (`user_data.sh`):** Script tá»± Ä‘á»™ng cháº¡y khi EC2 khá»Ÿi Ä‘á»™ng láº§n Ä‘áº§u:
-  1. CĂ i Docker Engine
-  2. CĂ i kubectl
-  3. CĂ i Kind
-  4. Táº¡o Kind Cluster vá»›i cáº¥u hĂ¬nh NodePort 30080
-  5. Khá»Ÿi Ä‘á»™ng `kubectl proxy` trĂªn port 8081
+### 2.6. EC2 Instance (Máy chủ ảo)
+- Loại instance: **t3.medium** (2 vCPU, 4GB RAM) — đủ sức chạy Kind Cluster.
+- AMI: **Ubuntu 22.04 LTS** (tìm tự động bằng `data "aws_ami"`).
+- **User Data (`user_data.sh`):** Script tự động chạy khi EC2 khởi động lần đầu:
+  1. Cài Docker Engine
+  2. Cài kubectl
+  3. Cài Kind
+  4. Tạo Kind Cluster với cấu hình NodePort 30080
+  5. Khởi động `kubectl proxy` trên port 8081
 
 ### 2.7. Application Load Balancer (ALB)
-- LĂ  bá»™ **cĂ¢n báº±ng táº£i táº§ng á»©ng dá»¥ng** (Layer 7 â€” HTTP/HTTPS).
-- Nháº­n request tá»« Internet (port 80) vĂ  phĂ¢n phá»‘i tá»›i Target Group.
-- **Target Group:** NhĂ³m cĂ¡c mĂ¡y chá»§ Ä‘Ă­ch. Trong lab, Target Group chá»‰ chá»©a 1 EC2, trá» vĂ o port 30080.
-- **Health Check:** ALB Ä‘á»‹nh ká»³ gá»­i request tá»›i `/` trĂªn port 30080 Ä‘á»ƒ kiá»ƒm tra xem á»©ng dá»¥ng cĂ²n sá»‘ng khĂ´ng.
+- Là bộ **cân bằng tải tầng ứng dụng** (Layer 7 — HTTP/HTTPS).
+- Nhận request từ Internet (port 80) và phân phối tới Target Group.
+- **Target Group:** Nhóm các máy chủ đích. Trong lab, Target Group chỉ chứa 1 EC2, trỏ vào port 30080.
+- **Health Check:** ALB định kỳ gửi request tới `/` trên port 30080 để kiểm tra xem ứng dụng còn sống không.
 
-### 2.8. Key Pair (Cáº·p khĂ³a SSH)
-- **TLS Provider** sinh ra cáº·p khĂ³a RSA 4096-bit.
-- **Public key** Ä‘Æ°á»£c Ä‘Äƒng kĂ½ lĂªn AWS (`aws_key_pair`) vĂ  gáº¯n vĂ o EC2.
-- **Private key** Ä‘Æ°á»£c ghi xuá»‘ng file `lab-cd9-key.pem` trĂªn mĂ¡y local (báº±ng `local_file`).
-- Khi SSH vĂ o EC2, báº¡n dĂ¹ng file `.pem` nĂ y Ä‘á»ƒ xĂ¡c thá»±c.
+### 2.8. Key Pair (Cặp khóa SSH)
+- **TLS Provider** sinh ra cặp khóa RSA 4096-bit.
+- **Public key** được đăng ký lên AWS (`aws_key_pair`) và gắn vào EC2.
+- **Private key** được ghi xuống file `lab-cd9-key.pem` trên máy local (bằng `local_file`).
+- Khi SSH vào EC2, bạn dùng file `.pem` này để xác thực.
 
 ---
 
-## Pháº§n 3: Kubernetes â€” Äiá»u Phá»‘i Container
+## Phần 3: Kubernetes — Điều Phối Container
 
-### 3.1. Kubernetes (K8s) lĂ  gĂ¬?
-- LĂ  há»‡ thá»‘ng **Ä‘iá»u phá»‘i container** mĂ£ nguá»“n má»Ÿ, giĂºp tá»± Ä‘á»™ng hĂ³a viá»‡c triá»ƒn khai, má»Ÿ rá»™ng vĂ  quáº£n lĂ½ cĂ¡c á»©ng dá»¥ng cháº¡y trong container.
+### 3.1. Kubernetes (K8s) là gì?
+- Là hệ thống **điều phối container** mã nguồn mở, giúp tự động hóa việc triển khai, mở rộng và quản lý các ứng dụng chạy trong container.
 
-### 3.2. Kind lĂ  gĂ¬? Táº¡i sao dĂ¹ng Kind thay Minikube?
-- **Kind (Kubernetes in Docker):** Cháº¡y cá»¥m Kubernetes bĂªn trong Docker container.
-- **Minikube:** Cháº¡y Kubernetes báº±ng VM hoáº·c trá»±c tiáº¿p trĂªn host (`--driver=none`).
-- **LĂ½ do chá»n Kind:**
-  - Minikube vá»›i `--driver=none` thÆ°á»ng gáº·p lá»—i phĂ¢n quyá»n Docker vĂ  Systemd trĂªn Ubuntu 22.04.
-  - Kind nháº¹ hÆ¡n, khá»Ÿi Ä‘á»™ng nhanh hÆ¡n vĂ  á»•n Ä‘á»‹nh hÆ¡n trĂªn mĂ´i trÆ°á»ng EC2.
-  - Vá» máº·t chá»©c nÄƒng, cáº£ hai Ä‘á»u cung cáº¥p má»™t cá»¥m K8s chuáº©n.
+### 3.2. Kind là gì? Tại sao dùng Kind thay Minikube?
+- **Kind (Kubernetes in Docker):** Chạy cụm Kubernetes bên trong Docker container.
+- **Minikube:** Chạy Kubernetes bằng VM hoặc trực tiếp trên host (`--driver=none`).
+- **Lý do chọn Kind:**
+  - Minikube với `--driver=none` thường gặp lỗi phân quyền Docker và Systemd trên Ubuntu 22.04.
+  - Kind nhẹ hơn, khởi động nhanh hơn và ổn định hơn trên môi trường EC2.
+  - Về mặt chức năng, cả hai đều cung cấp một cụm K8s chuẩn.
 
-### 3.3. CĂ¡c khĂ¡i niá»‡m K8s trong bĂ i lab (Pháº£i thuá»™c!)
+### 3.3. Các khái niệm K8s trong bài lab (Phải thuộc!)
 
-| KhĂ¡i niá»‡m | Giáº£i thĂ­ch | Trong bĂ i lab |
+| Khái niệm | Giải thích | Trong bài lab |
 |---|---|---|
-| **Node** | MĂ¡y chá»§ cháº¡y Kubernetes (pháº§n cá»©ng/VM) | EC2 Instance chĂ­nh lĂ  Node |
-| **Pod** | ÄÆ¡n vá»‹ nhá» nháº¥t cháº¡y á»©ng dá»¥ng, bá»c 1 hoáº·c nhiá»u Container | Pod chá»©a container Nginx |
-| **Namespace** | "PhĂ²ng lĂ m viá»‡c riĂªng" Ä‘á»ƒ gom nhĂ³m tĂ i nguyĂªn, trĂ¡nh xung Ä‘á»™t tĂªn | `lab-cd9` |
-| **ConfigMap** | LÆ°u trá»¯ dá»¯ liá»‡u cáº¥u hĂ¬nh/file tÄ©nh bĂªn ngoĂ i container | `web-html` chá»©a file `index.html` |
-| **Deployment** | Quáº£n lĂ½ vĂ²ng Ä‘á»i Pod (táº¡o, cáº­p nháº­t, rollback, scale) | `web-app` vá»›i `replicas: 1` |
-| **Service** | Expose á»©ng dá»¥ng ra ngoĂ i, cung cáº¥p IP/Port á»•n Ä‘á»‹nh | `web-service` kiá»ƒu NodePort trĂªn port `30080` |
+| **Node** | Máy chủ chạy Kubernetes (phần cứng/VM) | EC2 Instance chính là Node |
+| **Pod** | Đơn vị nhỏ nhất chạy ứng dụng, bọc 1 hoặc nhiều Container | Pod chứa container Nginx |
+| **Namespace** | "Phòng làm việc riêng" để gom nhóm tài nguyên, tránh xung đột tên | `lab-cd9` |
+| **ConfigMap** | Lưu trữ dữ liệu cấu hình/file tĩnh bên ngoài container | `web-html` chứa file `index.html` |
+| **Deployment** | Quản lý vòng đời Pod (tạo, cập nhật, rollback, scale) | `web-app` với `replicas: 1` |
+| **Service** | Expose ứng dụng ra ngoài, cung cấp IP/Port ổn định | `web-service` kiểu NodePort trên port `30080` |
 
-### 3.4. Service NodePort lĂ  gĂ¬?
-- **NodePort** lĂ  má»™t loáº¡i Service trong K8s cho phĂ©p truy cáº­p á»©ng dá»¥ng tá»« bĂªn ngoĂ i cluster thĂ´ng qua má»™t port cá»‘ Ä‘á»‹nh trĂªn Node.
-- Dáº£i port NodePort: `30000â€“32767`.
-- Trong lab: Port `30080` trĂªn EC2 (Node) sáº½ chuyá»ƒn tiáº¿p traffic vĂ o Port `80` cá»§a Pod Nginx.
+### 3.4. Service NodePort là gì?
+- **NodePort** là một loại Service trong K8s cho phép truy cập ứng dụng từ bên ngoài cluster thông qua một port cố định trên Node.
+- Dải port NodePort: `30000–32767`.
+- Trong lab: Port `30080` trên EC2 (Node) sẽ chuyển tiếp traffic vào Port `80` của Pod Nginx.
 
-### 3.5. kubectl proxy lĂ  gĂ¬?
-- LĂ  lá»‡nh táº¡o má»™t **cá»•ng káº¿t ná»‘i táº¡m thá»i** (proxy) tá»« bĂªn ngoĂ i vĂ o Kubernetes API Server.
-- Trong lab: `kubectl proxy --port=8081` má»Ÿ cá»•ng `8081` trĂªn EC2 Ä‘á»ƒ Terraform (tá»« mĂ¡y local) cĂ³ thá»ƒ gá»i K8s API Ä‘á»ƒ táº¡o Deployment, Service, v.v.
+### 3.5. kubectl proxy là gì?
+- Là lệnh tạo một **cổng kết nối tạm thời** (proxy) từ bên ngoài vào Kubernetes API Server.
+- Trong lab: `kubectl proxy --port=8081` mở cổng `8081` trên EC2 để Terraform (từ máy local) có thể gọi K8s API để tạo Deployment, Service, v.v.
 
 ---
 
-## Pháº§n 4: Luá»“ng Hoáº¡t Äá»™ng (Flow) â€” Pháº£i giáº£i thĂ­ch Ä‘Æ°á»£c!
+## Phần 4: Luồng Hoạt Động (Flow) — Phải giải thích được!
 
-### 4.1. Luá»“ng Triá»ƒn Khai (Apply â€” Chiá»u xuĂ´i)
+### 4.1. Luồng Triển Khai (Apply — Chiều xuôi)
 ```
 terraform apply
-    â†“
-[1] Táº¡o VPC + Subnet + IGW + Route Table (Máº¡ng)
-    â†“
-[2] Táº¡o Security Groups (TÆ°á»ng lá»­a)
-    â†“
+    ↓
+[1] Tạo VPC + Subnet + IGW + Route Table (Mạng)
+    ↓
+[2] Tạo Security Groups (Tường lửa)
+    ↓
 [3] Sinh SSH Key (TLS Provider) + Ghi file .pem (Local Provider)
-    â†“
-[4] Táº¡o EC2 Instance â†’ Cháº¡y user_data.sh (Docker â†’ Kind â†’ kubectl proxy)
-    â†“
-[5] null_resource kiá»ƒm tra proxy 8081 sáºµn sĂ ng
-    â†“
-[6] Kubernetes Provider káº¿t ná»‘i qua proxy â†’ Táº¡o Namespace â†’ ConfigMap â†’ Deployment â†’ Service
-    â†“
-[7] Táº¡o ALB + Target Group + Listener (song song vá»›i bÆ°á»›c 4-6)
-    â†“
-âœ… HoĂ n táº¥t! Truy cáº­p http://<alb-dns-name>
+    ↓
+[4] Tạo EC2 Instance → Chạy user_data.sh (Docker → Kind → kubectl proxy)
+    ↓
+[5] null_resource kiểm tra proxy 8081 sẵn sàng
+    ↓
+[6] Kubernetes Provider kết nối qua proxy → Tạo Namespace → ConfigMap → Deployment → Service
+    ↓
+[7] Tạo ALB + Target Group + Listener (song song với bước 4-6)
+    ↓
+✅ Hoàn tất! Truy cập http://<alb-dns-name>
 ```
 
-### 4.2. Luá»“ng Request cá»§a NgÆ°á»i DĂ¹ng
+### 4.2. Luồng Request của Người Dùng
 ```
-TrĂ¬nh duyá»‡t â†’ http://<alb-dns-name>:80
-    â†“
+Trình duyệt → http://<alb-dns-name>:80
+    ↓
 Internet Gateway (IGW)
-    â†“
-Application Load Balancer (ALB) â€” Port 80
-    â†“
-Target Group â†’ Forward tá»›i EC2:30080
-    â†“
-EC2 (Node) nháº­n traffic á»Ÿ port 30080
-    â†“
-Kind Cluster â†’ Service (NodePort 30080) â†’ Pod (Nginx:80)
-    â†“
-Nginx Ä‘á»c file index.html tá»« ConfigMap â†’ Tráº£ vá» trang web
+    ↓
+Application Load Balancer (ALB) — Port 80
+    ↓
+Target Group → Forward tới EC2:30080
+    ↓
+EC2 (Node) nhận traffic ở port 30080
+    ↓
+Kind Cluster → Service (NodePort 30080) → Pod (Nginx:80)
+    ↓
+Nginx đọc file index.html từ ConfigMap → Trả về trang web
 ```
 
-### 4.3. Luá»“ng Há»§y Bá» (Destroy â€” Chiá»u ngÆ°á»£c, nhá» depends_on)
+### 4.3. Luồng Hủy Bỏ (Destroy — Chiều ngược, nhờ depends_on)
 ```
 terraform destroy
-    â†“
-[1] XĂ³a Service â†’ Deployment â†’ ConfigMap â†’ Namespace (K8s)
-    â†“  â† LĂºc nĂ y máº¡ng AWS váº«n sá»‘ng, proxy 8081 váº«n thĂ´ng
-[2] XĂ³a null_resource, EC2 Instance
-    â†“  â† EC2 táº¯t â†’ Kind Cluster biáº¿n máº¥t
-[3] XĂ³a Route Table Associations
-    â†“
-[4] XĂ³a Route Table, Internet Gateway
-    â†“
-[5] XĂ³a Subnet, ALB, Security Groups
-    â†“
-[6] XĂ³a VPC
-    â†“
-âœ… Dá»n sáº¡ch! KhĂ´ng bá»‹ treo!
+    ↓
+[1] Xóa Service → Deployment → ConfigMap → Namespace (K8s)
+    ↓  ← Lúc này mạng AWS vẫn sống, proxy 8081 vẫn thông
+[2] Xóa null_resource, EC2 Instance
+    ↓  ← EC2 tắt → Kind Cluster biến mất
+[3] Xóa Route Table Associations
+    ↓
+[4] Xóa Route Table, Internet Gateway
+    ↓
+[5] Xóa Subnet, ALB, Security Groups
+    ↓
+[6] Xóa VPC
+    ↓
+✅ Dọn sạch! Không bị treo!
 ```
 
 ---
 
-## Pháº§n 5: Váº¥n Äá» `depends_on` â€” CĂ¢u há»i nĂ¢ng cao hay gáº·p
+## Phần 5: Vấn Đề `depends_on` — Câu hỏi nâng cao hay gặp
 
-### 5.1. Váº¥n Ä‘á» gá»‘c (Deadlock khi Destroy)
-- Khi khĂ´ng cĂ³ `depends_on`, Terraform xĂ³a tĂ i nguyĂªn theo thá»© tá»± tĂ¹y Ă½.
-- NĂ³ cĂ³ thá»ƒ xĂ³a Internet Gateway vĂ  Route Table **trÆ°á»›c** khi xĂ³a xong Namespace K8s.
-- Háº­u quáº£: ÄÆ°á»ng máº¡ng bá»‹ ngáº¯t â†’ Terraform khĂ´ng thá»ƒ káº¿t ná»‘i proxy 8081 Ä‘á»ƒ gá»i API xĂ³a Namespace â†’ Bá»‹ treo vĂ´ háº¡n.
+### 5.1. Vấn đề gốc (Deadlock khi Destroy)
+- Khi không có `depends_on`, Terraform xóa tài nguyên theo thứ tự tùy ý.
+- Nó có thể xóa Internet Gateway và Route Table **trước** khi xóa xong Namespace K8s.
+- Hậu quả: Đường mạng bị ngắt → Terraform không thể kết nối proxy 8081 để gọi API xóa Namespace → Bị treo vô hạn.
 
-### 5.2. Giáº£i phĂ¡p
+### 5.2. Giải pháp
 ```hcl
 resource "kubernetes_namespace_v1" "web" {
   depends_on = [
@@ -227,125 +227,125 @@ resource "kubernetes_namespace_v1" "web" {
   ]
 }
 ```
-- `depends_on` Ă©p Terraform **táº¡o** Namespace **sau** khi máº¡ng sáºµn sĂ ng.
-- NgÆ°á»£c láº¡i khi destroy, Terraform **xĂ³a** Namespace **trÆ°á»›c** khi ngáº¯t máº¡ng.
-- Káº¿t quáº£: QuĂ¡ trĂ¬nh xĂ³a K8s diá»…n ra khi proxy váº«n hoáº¡t Ä‘á»™ng â†’ Destroy hoĂ n táº¥t trong vĂ²ng 1 phĂºt.
+- `depends_on` ép Terraform **tạo** Namespace **sau** khi mạng sẵn sàng.
+- Ngược lại khi destroy, Terraform **xóa** Namespace **trước** khi ngắt mạng.
+- Kết quả: Quá trình xóa K8s diễn ra khi proxy vẫn hoạt động → Destroy hoàn tất trong vòng 1 phút.
 
 ---
 
-## Pháº§n 6: CĂ¢u Há»i ThÆ°á»ng Gáº·p Khi Thuyáº¿t TrĂ¬nh (Q&A)
+## Phần 6: Câu Hỏi Thường Gặp Khi Thuyết Trình (Q&A)
 
-### CĂ¢u há»i vá» Terraform
-> **Q: Táº¡i sao dĂ¹ng Terraform mĂ  khĂ´ng dĂ¹ng AWS Console (giao diá»‡n web)?**
-> A: Terraform cho phĂ©p tá»± Ä‘á»™ng hĂ³a 100%, cĂ³ thá»ƒ tĂ¡i sá»­ dá»¥ng code, version control báº±ng Git, vĂ  Ä‘áº£m báº£o tĂ­nh nháº¥t quĂ¡n (má»—i láº§n cháº¡y Ä‘á»u cho ra káº¿t quáº£ giá»‘ng nhau). DĂ¹ng Console thĂ¬ pháº£i click thá»§ cĂ´ng tá»«ng bÆ°á»›c, dá»… sai sĂ³t vĂ  khĂ´ng láº·p láº¡i Ä‘Æ°á»£c.
+### Câu hỏi về Terraform
+> **Q: Tại sao dùng Terraform mà không dùng AWS Console (giao diện web)?**
+> A: Terraform cho phép tự động hóa 100%, có thể tái sử dụng code, version control bằng Git, và đảm bảo tính nhất quán (mỗi lần chạy đều cho ra kết quả giống nhau). Dùng Console thì phải click thủ công từng bước, dễ sai sót và không lặp lại được.
 
-> **Q: `terraform plan` khĂ¡c `terraform apply` tháº¿ nĂ o?**
-> A: `plan` chá»‰ xem trÆ°á»›c (dry-run), khĂ´ng thay Ä‘á»•i gĂ¬ trĂªn cloud. `apply` má»›i thá»±c sá»± táº¡o/sá»­a/xĂ³a tĂ i nguyĂªn.
+> **Q: `terraform plan` khác `terraform apply` thế nào?**
+> A: `plan` chỉ xem trước (dry-run), không thay đổi gì trên cloud. `apply` mới thực sự tạo/sửa/xóa tài nguyên.
 
-> **Q: Náº¿u xĂ³a file `terraform.tfstate` thĂ¬ sao?**
-> A: Terraform sáº½ "máº¥t trĂ­ nhá»›", khĂ´ng biáº¿t háº¡ táº§ng nĂ o Ä‘ang cháº¡y trĂªn AWS. Láº§n cháº¡y `apply` tiáº¿p theo, nĂ³ sáº½ cá»‘ táº¡o má»›i táº¥t cáº£ â†’ Bá»‹ lá»—i trĂ¹ng tĂªn tĂ i nguyĂªn trĂªn AWS.
+> **Q: Nếu xóa file `terraform.tfstate` thì sao?**
+> A: Terraform sẽ "mất trí nhớ", không biết hạ tầng nào đang chạy trên AWS. Lần chạy `apply` tiếp theo, nó sẽ cố tạo mới tất cả → Bị lỗi trùng tên tài nguyên trên AWS.
 
-### CĂ¢u há»i vá» AWS
-> **Q: Táº¡i sao cáº§n 2 Subnet?**
-> A: AWS yĂªu cáº§u ALB pháº£i gáº¯n vĂ o Ă­t nháº¥t 2 Subnet thuá»™c 2 Availability Zone khĂ¡c nhau Ä‘á»ƒ Ä‘áº£m báº£o tĂ­nh sáºµn sĂ ng cao (High Availability). Náº¿u AZ-a bá»‹ sáº­p, ALB váº«n hoáº¡t Ä‘á»™ng á»Ÿ AZ-b.
+### Câu hỏi về AWS
+> **Q: Tại sao cần 2 Subnet?**
+> A: AWS yêu cầu ALB phải gắn vào ít nhất 2 Subnet thuộc 2 Availability Zone khác nhau để đảm bảo tính sẵn sàng cao (High Availability). Nếu AZ-a bị sập, ALB vẫn hoạt động ở AZ-b.
 
-> **Q: Security Group khĂ¡c gĂ¬ vá»›i Firewall truyá»n thá»‘ng?**
-> A: Security Group lĂ  tÆ°á»ng lá»­a áº£o hoáº¡t Ä‘á»™ng á»Ÿ cáº¥p Ä‘á»™ instance (gáº¯n trá»±c tiáº¿p vĂ o EC2/ALB). NĂ³ lĂ  **stateful** â€” nghÄ©a lĂ  náº¿u cho phĂ©p traffic vĂ o, response tá»± Ä‘á»™ng Ä‘Æ°á»£c cho phĂ©p Ä‘i ra mĂ  khĂ´ng cáº§n khai bĂ¡o thĂªm rule outbound.
+> **Q: Security Group khác gì với Firewall truyền thống?**
+> A: Security Group là tường lửa ảo hoạt động ở cấp độ instance (gắn trực tiếp vào EC2/ALB). Nó là **stateful** — nghĩa là nếu cho phép traffic vào, response tự động được cho phép đi ra mà không cần khai báo thêm rule outbound.
 
-> **Q: ALB khĂ¡c gĂ¬ NLB?**
-> A: ALB (Application Load Balancer) hoáº¡t Ä‘á»™ng á»Ÿ Layer 7 (HTTP/HTTPS), hiá»ƒu Ä‘Æ°á»£c URL, header, cookie. NLB (Network Load Balancer) hoáº¡t Ä‘á»™ng á»Ÿ Layer 4 (TCP/UDP), nhanh hÆ¡n nhÆ°ng khĂ´ng hiá»ƒu ná»™i dung HTTP.
+> **Q: ALB khác gì NLB?**
+> A: ALB (Application Load Balancer) hoạt động ở Layer 7 (HTTP/HTTPS), hiểu được URL, header, cookie. NLB (Network Load Balancer) hoạt động ở Layer 4 (TCP/UDP), nhanh hơn nhưng không hiểu nội dung HTTP.
 
-### CĂ¢u há»i vá» Kubernetes
-> **Q: Pod khĂ¡c gĂ¬ Container?**
-> A: Container lĂ  tiáº¿n trĂ¬nh cháº¡y á»©ng dá»¥ng (vĂ­ dá»¥: Nginx). Pod lĂ  lá»›p bá»c bĂªn ngoĂ i Container, cung cáº¥p IP riĂªng vĂ  quáº£n lĂ½ vĂ²ng Ä‘á»i. Má»™t Pod cĂ³ thá»ƒ chá»©a nhiá»u Container chia sáº» cĂ¹ng network vĂ  storage.
+### Câu hỏi về Kubernetes
+> **Q: Pod khác gì Container?**
+> A: Container là tiến trình chạy ứng dụng (ví dụ: Nginx). Pod là lớp bọc bên ngoài Container, cung cấp IP riêng và quản lý vòng đời. Một Pod có thể chứa nhiều Container chia sẻ cùng network và storage.
 
-> **Q: Táº¡i sao dĂ¹ng ConfigMap thay vĂ¬ build HTML vĂ o Docker Image?**
-> A: Äá»ƒ tĂ¡ch biá»‡t code vĂ  cáº¥u hĂ¬nh. Khi cáº§n sá»­a giao diá»‡n, chá»‰ cáº§n cáº­p nháº­t ConfigMap mĂ  khĂ´ng pháº£i build láº¡i Docker Image (tiáº¿t kiá»‡m 2-3 phĂºt má»—i láº§n sá»­a).
+> **Q: Tại sao dùng ConfigMap thay vì build HTML vào Docker Image?**
+> A: Để tách biệt code và cấu hình. Khi cần sửa giao diện, chỉ cần cập nhật ConfigMap mà không phải build lại Docker Image (tiết kiệm 2-3 phút mỗi lần sửa).
 
-> **Q: NodePort khĂ¡c gĂ¬ ClusterIP vĂ  LoadBalancer?**
-> A: ClusterIP chá»‰ truy cáº­p Ä‘Æ°á»£c tá»« bĂªn trong cluster. NodePort má»Ÿ port trĂªn Node Ä‘á»ƒ truy cáº­p tá»« bĂªn ngoĂ i (dáº£i 30000-32767). LoadBalancer tá»± Ä‘á»™ng táº¡o Load Balancer trĂªn cloud provider (nhÆ°ng trong lab ta Ä‘Ă£ dĂ¹ng ALB riĂªng nĂªn chá»n NodePort).
+> **Q: NodePort khác gì ClusterIP và LoadBalancer?**
+> A: ClusterIP chỉ truy cập được từ bên trong cluster. NodePort mở port trên Node để truy cập từ bên ngoài (dải 30000-32767). LoadBalancer tự động tạo Load Balancer trên cloud provider (nhưng trong lab ta đã dùng ALB riêng nên chọn NodePort).
 
-### CĂ¢u há»i vá» Báº£o máº­t
-> **Q: Hacker láº¥y Ä‘Æ°á»£c file SSH key .pem thĂ¬ cĂ³ vĂ o Ä‘Æ°á»£c EC2 khĂ´ng?**
-> A: Náº¿u báº¡n Ä‘áº·t biáº¿n `my_ip` Ä‘Ăºng IP cá»§a mĂ¬nh (thay vĂ¬ `0.0.0.0/0`), thĂ¬ KHĂ”NG. Security Group cá»§a EC2 sáº½ cháº·n má»i káº¿t ná»‘i SSH tá»« IP khĂ´ng khá»›p, dĂ¹ cĂ³ Ä‘Ăºng key cÅ©ng khĂ´ng vĂ o Ä‘Æ°á»£c.
+### Câu hỏi về Bảo mật
+> **Q: Hacker lấy được file SSH key .pem thì có vào được EC2 không?**
+> A: Nếu bạn đặt biến `my_ip` đúng IP của mình (thay vì `0.0.0.0/0`), thì KHÔNG. Security Group của EC2 sẽ chặn mọi kết nối SSH từ IP không khớp, dù có đúng key cũng không vào được.
 
-> **Q: Táº¡i sao khĂ´ng dĂ¹ng HTTPS?**
-> A: HTTPS cáº§n chá»©ng chá»‰ SSL tá»« AWS ACM, mĂ  ACM yĂªu cáº§u pháº£i cĂ³ tĂªn miá»n riĂªng (domain). BĂ i lab dĂ¹ng URL máº·c Ä‘á»‹nh cá»§a ALB nĂªn khĂ´ng thá»ƒ cáº¥p SSL. Vá»›i má»¥c Ä‘Ă­ch há»c táº­p, HTTP lĂ  Ä‘á»§.
+> **Q: Tại sao không dùng HTTPS?**
+> A: HTTPS cần chứng chỉ SSL từ AWS ACM, mà ACM yêu cầu phải có tên miền riêng (domain). Bài lab dùng URL mặc định của ALB nên không thể cấp SSL. Với mục đích học tập, HTTP là đủ.
 
 ---
 
-## Pháº§n 7: Cáº¥u TrĂºc File Dá»± Ăn (Pháº£i nhá»› má»—i file lĂ m gĂ¬!)
+## Phần 7: Cấu Trúc File Dự Án (Phải nhớ mỗi file làm gì!)
 
-| File | Má»¥c Ä‘Ă­ch |
+| File | Mục đích |
 |---|---|
-| `providers.tf` | Khai bĂ¡o 4 provider (AWS, TLS, Local, Kubernetes) vĂ  cáº¥u hĂ¬nh káº¿t ná»‘i |
-| `variables.tf` | Khai bĂ¡o cĂ¡c biáº¿n Ä‘áº§u vĂ o (region, instance type, IP, port) |
-| `locals.tf` | Äá»‹nh nghÄ©a giĂ¡ trá»‹ tĂ¡i sá»­ dá»¥ng (name prefix, common tags) |
-| `data.tf` | Truy váº¥n AMI Ubuntu 22.04 má»›i nháº¥t tá»« AWS |
-| `vpc.tf` | Táº¡o VPC, Subnet A/B, IGW, Route Table vĂ  liĂªn káº¿t |
-| `security_groups.tf` | Táº¡o 2 Security Group cho ALB vĂ  EC2 |
-| `key_pair.tf` | Sinh SSH key, Ä‘Äƒng kĂ½ lĂªn AWS, ghi file .pem |
-| `ec2.tf` | Táº¡o EC2 Instance vĂ  null_resource kiá»ƒm tra proxy |
-| `alb.tf` | Táº¡o ALB, Target Group, Listener vĂ  gáº¯n EC2 |
-| `kubernetes.tf` | Táº¡o Namespace, ConfigMap, Deployment, Service (cĂ³ depends_on) |
-| `outputs.tf` | Xuáº¥t URL ALB, IP EC2, lá»‡nh SSH, link proxy |
-| `scripts/user_data.sh` | Script bootstrap cĂ i Docker, Kind, kubectl, táº¡o cluster, cháº¡y proxy |
-| `scripts/index.html` | Trang giao diá»‡n web tĂ¹y chá»‰nh cá»§a báº¡n |
+| `providers.tf` | Khai báo 4 provider (AWS, TLS, Local, Kubernetes) và cấu hình kết nối |
+| `variables.tf` | Khai báo các biến đầu vào (region, instance type, IP, port) |
+| `locals.tf` | Định nghĩa giá trị tái sử dụng (name prefix, common tags) |
+| `data.tf` | Truy vấn AMI Ubuntu 22.04 mới nhất từ AWS |
+| `vpc.tf` | Tạo VPC, Subnet A/B, IGW, Route Table và liên kết |
+| `security_groups.tf` | Tạo 2 Security Group cho ALB và EC2 |
+| `key_pair.tf` | Sinh SSH key, đăng ký lên AWS, ghi file .pem |
+| `ec2.tf` | Tạo EC2 Instance và null_resource kiểm tra proxy |
+| `alb.tf` | Tạo ALB, Target Group, Listener và gắn EC2 |
+| `kubernetes.tf` | Tạo Namespace, ConfigMap, Deployment, Service (có depends_on) |
+| `outputs.tf` | Xuất URL ALB, IP EC2, lệnh SSH, link proxy |
+| `scripts/user_data.sh` | Script bootstrap cài Docker, Kind, kubectl, tạo cluster, chạy proxy |
+| `scripts/index.html` | Trang giao diện web tùy chỉnh của bạn |
 
 ---
 
-## Pháº§n 8: Code Thá»±c Táº¿ â€” Giáº£i ThĂ­ch Tá»«ng DĂ²ng
+## Phần 8: Code Thực Tế — Giải Thích Từng Dòng
 
 ### 8.1. EC2 Instance (`ec2.tf`)
 ```hcl
 resource "aws_instance" "minikube" {
-  ami           = data.aws_ami.ubuntu.id        # AMI Ubuntu 22.04 (truy váº¥n tá»± Ä‘á»™ng tá»« data source)
+  ami           = data.aws_ami.ubuntu.id        # AMI Ubuntu 22.04 (truy vấn tự động từ data source)
   instance_type = var.instance_type             # t3.medium (2 vCPU, 4GB RAM)
-  key_name      = aws_key_pair.deployer.key_name # Gáº¯n SSH public key vĂ o EC2
-  subnet_id     = aws_subnet.public_a.id         # Äáº·t EC2 trong Subnet A (cĂ³ public IP)
+  key_name      = aws_key_pair.deployer.key_name # Gắn SSH public key vào EC2
+  subnet_id     = aws_subnet.public_a.id         # Đặt EC2 trong Subnet A (có public IP)
 
-  vpc_security_group_ids = [aws_security_group.ec2_sg.id] # Gáº¯n tÆ°á»ng lá»­a EC2-SG
+  vpc_security_group_ids = [aws_security_group.ec2_sg.id] # Gắn tường lửa EC2-SG
 
-  # Äá»c file user_data.sh vĂ  truyá»n biáº¿n proxy_port = 8081 vĂ o bĂªn trong script
+  # Đọc file user_data.sh và truyền biến proxy_port = 8081 vào bên trong script
   user_data = templatefile("${path.module}/scripts/user_data.sh", {
     proxy_port = var.proxy_port
   })
 
   root_block_device {
-    volume_size           = 20    # á»” cá»©ng 20GB
-    volume_type           = "gp3" # Loáº¡i á»• SSD hiá»‡u suáº¥t cao
-    delete_on_termination = true  # Tá»± xĂ³a á»• cá»©ng khi EC2 bá»‹ há»§y
+    volume_size           = 20    # Ổ cứng 20GB
+    volume_type           = "gp3" # Loại ổ SSD hiệu suất cao
+    delete_on_termination = true  # Tự xóa ổ cứng khi EC2 bị hủy
   }
 
   tags = merge(local.common_tags, {
-    Name = "${local.name_prefix}-minikube"  # TĂªn hiá»ƒn thá»‹: "lab-cd9-minikube"
+    Name = "${local.name_prefix}-minikube"  # Tên hiển thị: "lab-cd9-minikube"
   })
 }
 ```
 
-**CĂ¡c Ä‘iá»ƒm cáº§n náº¯m:**
-- `data.aws_ami.ubuntu.id` â€” Tham chiáº¿u Ä‘áº¿n káº¿t quáº£ cá»§a data source, tráº£ vá» ID cá»§a AMI Ubuntu má»›i nháº¥t.
-- `templatefile()` â€” HĂ m Ä‘á»c file script vĂ  thay tháº¿ `${proxy_port}` bĂªn trong báº±ng giĂ¡ trá»‹ thá»±c (8081).
-- `merge()` â€” HĂ m gá»™p 2 map láº¡i vá»›i nhau (gá»™p common_tags + tag Name riĂªng).
-- `${path.module}` â€” Biáº¿n Ä‘áº·c biá»‡t cá»§a Terraform, tráº£ vá» Ä‘Æ°á»ng dáº«n tá»›i thÆ° má»¥c chá»©a file `.tf` hiá»‡n táº¡i.
+**Các điểm cần nắm:**
+- `data.aws_ami.ubuntu.id` — Tham chiếu đến kết quả của data source, trả về ID của AMI Ubuntu mới nhất.
+- `templatefile()` — Hàm đọc file script và thay thế `${proxy_port}` bên trong bằng giá trị thực (8081).
+- `merge()` — Hàm gộp 2 map lại với nhau (gộp common_tags + tag Name riêng).
+- `${path.module}` — Biến đặc biệt của Terraform, trả về đường dẫn tới thư mục chứa file `.tf` hiện tại.
 
 ### 8.2. null_resource (`ec2.tf`)
 ```hcl
 resource "null_resource" "wait_for_minikube" {
-  depends_on = [aws_instance.minikube]  # Chá»‰ cháº¡y SAU KHI EC2 Ä‘Ă£ Ä‘Æ°á»£c táº¡o
+  depends_on = [aws_instance.minikube]  # Chỉ chạy SAU KHI EC2 đã được tạo
 
   connection {
-    type        = "ssh"                              # Káº¿t ná»‘i báº±ng giao thá»©c SSH
-    user        = "ubuntu"                           # User máº·c Ä‘á»‹nh cá»§a Ubuntu AMI
-    private_key = tls_private_key.ssh.private_key_pem # DĂ¹ng key vá»«a sinh tá»« TLS provider
-    host        = aws_instance.minikube.public_ip    # IP cĂ´ng khai cá»§a EC2
+    type        = "ssh"                              # Kết nối bằng giao thức SSH
+    user        = "ubuntu"                           # User mặc định của Ubuntu AMI
+    private_key = tls_private_key.ssh.private_key_pem # Dùng key vừa sinh từ TLS provider
+    host        = aws_instance.minikube.public_ip    # IP công khai của EC2
   }
 
-  provisioner "remote-exec" {   # Cháº¡y lá»‡nh TRĂN MĂY EC2 (khĂ´ng pháº£i mĂ¡y local)
+  provisioner "remote-exec" {   # Chạy lệnh TRÊN MÁY EC2 (không phải máy local)
     inline = [
-      "sudo cloud-init status --wait",   # Äá»£i user_data.sh cháº¡y xong
+      "sudo cloud-init status --wait",   # Đợi user_data.sh chạy xong
       "until curl -s http://localhost:${var.proxy_port}/api/v1/namespaces > /dev/null 2>&1; do sleep 5; done",
-      # â†‘ LiĂªn tá»¥c thá»­ gá»i API proxy cho Ä‘áº¿n khi nĂ³ pháº£n há»“i thĂ nh cĂ´ng
+      # ↑ Liên tục thử gọi API proxy cho đến khi nó phản hồi thành công
     ]
   }
 }
@@ -355,52 +355,52 @@ resource "null_resource" "wait_for_minikube" {
 ```hcl
 resource "kubernetes_deployment_v1" "web" {
   metadata {
-    name      = "web-app"                                      # TĂªn cá»§a Deployment
-    namespace = kubernetes_namespace_v1.web.metadata[0].name   # Thuá»™c namespace lab-cd9
-    labels    = { app = "web-app" }                            # NhĂ£n Ä‘á»ƒ liĂªn káº¿t vá»›i Service
+    name      = "web-app"                                      # Tên của Deployment
+    namespace = kubernetes_namespace_v1.web.metadata[0].name   # Thuộc namespace lab-cd9
+    labels    = { app = "web-app" }                            # Nhãn để liên kết với Service
   }
 
   spec {
-    replicas = 1  # Sá»‘ lÆ°á»£ng Pod cáº§n duy trĂ¬ (1 báº£n sao)
+    replicas = 1  # Số lượng Pod cần duy trì (1 bản sao)
 
     selector {
-      match_labels = { app = "web-app" }  # Deployment quáº£n lĂ½ cĂ¡c Pod cĂ³ label app=web-app
+      match_labels = { app = "web-app" }  # Deployment quản lý các Pod có label app=web-app
     }
 
-    template {      # KhuĂ´n máº«u Ä‘á»ƒ táº¡o Pod
+    template {      # Khuôn mẫu để tạo Pod
       metadata {
-        labels = { app = "web-app" }   # Pod Ä‘Æ°á»£c gáº¯n label nĂ y
+        labels = { app = "web-app" }   # Pod được gắn label này
         annotations = {
-          # Hash cá»§a file HTML â†’ Khi HTML thay Ä‘á»•i, hash Ä‘á»•i â†’ Terraform phĂ¡t hiá»‡n vĂ  redeploy Pod
+          # Hash của file HTML → Khi HTML thay đổi, hash đổi → Terraform phát hiện và redeploy Pod
           "configmap-hash" = sha256(file("${path.module}/scripts/index.html"))
         }
       }
 
       spec {
         container {
-          name  = "nginx"          # TĂªn container bĂªn trong Pod
-          image = "nginx:alpine"   # Docker Image: Nginx phiĂªn báº£n nháº¹ (chá»‰ ~40MB)
+          name  = "nginx"          # Tên container bên trong Pod
+          image = "nginx:alpine"   # Docker Image: Nginx phiên bản nhẹ (chỉ ~40MB)
 
           port {
-            container_port = 80    # Container láº¯ng nghe port 80
+            container_port = 80    # Container lắng nghe port 80
           }
 
           volume_mount {
-            name       = "html-volume"                 # TĂªn volume cáº§n mount
-            mount_path = "/usr/share/nginx/html"       # Ghi Ä‘Ă¨ thÆ° má»¥c HTML máº·c Ä‘á»‹nh cá»§a Nginx
-            read_only  = true                          # Chá»‰ Ä‘á»c, khĂ´ng cho phĂ©p ghi
+            name       = "html-volume"                 # Tên volume cần mount
+            mount_path = "/usr/share/nginx/html"       # Ghi đè thư mục HTML mặc định của Nginx
+            read_only  = true                          # Chỉ đọc, không cho phép ghi
           }
 
           resources {
-            limits   = { cpu = "500m", memory = "256Mi" }   # Giá»›i háº¡n tá»‘i Ä‘a: 0.5 CPU, 256MB RAM
-            requests = { cpu = "100m", memory = "128Mi" }   # YĂªu cáº§u tá»‘i thiá»ƒu: 0.1 CPU, 128MB RAM
+            limits   = { cpu = "500m", memory = "256Mi" }   # Giới hạn tối đa: 0.5 CPU, 256MB RAM
+            requests = { cpu = "100m", memory = "128Mi" }   # Yêu cầu tối thiểu: 0.1 CPU, 128MB RAM
           }
         }
 
         volume {
           name = "html-volume"
           config_map {
-            name = kubernetes_config_map_v1.web_html.metadata[0].name  # Gáº¯n ConfigMap web-html lĂ m volume
+            name = kubernetes_config_map_v1.web_html.metadata[0].name  # Gắn ConfigMap web-html làm volume
           }
         }
       }
@@ -409,45 +409,45 @@ resource "kubernetes_deployment_v1" "web" {
 }
 ```
 
-**Má»‘i quan há»‡ giá»¯a cĂ¡c thĂ nh pháº§n:**
+**Mối quan hệ giữa các thành phần:**
 ```
 Deployment (web-app)
-    â”‚
-    â”œâ”€â”€ selector: app=web-app     â† Deployment tĂ¬m vĂ  quáº£n lĂ½ Pod theo label nĂ y
-    â”‚
-    â””â”€â”€ template (KhuĂ´n máº«u Pod)
-         â”‚
-         â”œâ”€â”€ labels: app=web-app  â† Pod Ä‘Æ°á»£c gáº¯n label khá»›p vá»›i selector
-         â”‚
-         â”œâ”€â”€ Container: nginx:alpine (port 80)
-         â”‚       â”‚
-         â”‚       â””â”€â”€ volume_mount: /usr/share/nginx/html â† Ghi Ä‘Ă¨ file HTML
-         â”‚
-         â””â”€â”€ Volume: html-volume
-                 â”‚
-                 â””â”€â”€ config_map: web-html â† Ná»™i dung file index.html
+    │
+    ├── selector: app=web-app     ← Deployment tìm và quản lý Pod theo label này
+    │
+    └── template (Khuôn mẫu Pod)
+         │
+         ├── labels: app=web-app  ← Pod được gắn label khớp với selector
+         │
+         ├── Container: nginx:alpine (port 80)
+         │       │
+         │       └── volume_mount: /usr/share/nginx/html ← Ghi đè file HTML
+         │
+         └── Volume: html-volume
+                 │
+                 └── config_map: web-html ← Nội dung file index.html
 ```
 
 ### 8.4. Service NodePort (`kubernetes.tf`)
 ```hcl
 resource "kubernetes_service_v1" "web" {
   spec {
-    type = "NodePort"                # Kiá»ƒu Service: má»Ÿ port trĂªn Node
+    type = "NodePort"                # Kiểu Service: mở port trên Node
 
-    selector = { app = "web-app" }   # Forward traffic tá»›i Pod cĂ³ label app=web-app
+    selector = { app = "web-app" }   # Forward traffic tới Pod có label app=web-app
 
     port {
-      port        = 80               # Port cá»§a Service (bĂªn trong cluster)
-      target_port = 80               # Port cá»§a Container Nginx
-      node_port   = 30080            # Port má»Ÿ ra trĂªn Node (EC2) Ä‘á»ƒ nháº­n traffic tá»« bĂªn ngoĂ i
+      port        = 80               # Port của Service (bên trong cluster)
+      target_port = 80               # Port của Container Nginx
+      node_port   = 30080            # Port mở ra trên Node (EC2) để nhận traffic từ bên ngoài
     }
   }
 }
 ```
 
-**Luá»“ng traffic qua Service:**
+**Luồng traffic qua Service:**
 ```
-BĂªn ngoĂ i (ALB) â†’ EC2:30080 (node_port) â†’ Service:80 (port) â†’ Pod/Container:80 (target_port)
+Bên ngoài (ALB) → EC2:30080 (node_port) → Service:80 (port) → Pod/Container:80 (target_port)
 ```
 
 ### 8.5. Security Group (`security_groups.tf`)
@@ -456,192 +456,193 @@ resource "aws_security_group" "ec2_sg" {
   name   = "${local.name_prefix}-ec2-sg"
   vpc_id = aws_vpc.main.id
 
-  # Inbound: Chá»‰ cho ALB gá»­i traffic vĂ o port 30080
+  # Inbound: Chỉ cho ALB gửi traffic vào port 30080
   ingress {
     from_port       = var.app_port          # 30080
     to_port         = var.app_port          # 30080
     protocol        = "tcp"
-    security_groups = [aws_security_group.alb_sg.id]  # â† Chá»‰ cho phĂ©p tá»« ALB-SG (KHĂ”NG pháº£i IP)
+    security_groups = [aws_security_group.alb_sg.id]  # ← Chỉ cho phép từ ALB-SG (KHÔNG phải IP)
   }
 
-  # Inbound: SSH chá»‰ tá»« IP cá»§a báº¡n
+  # Inbound: SSH chỉ từ IP của bạn
   ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = [var.my_ip]               # â† "0.0.0.0/0" hoáº·c "123.45.67.89/32"
+    cidr_blocks = [var.my_ip]               # ← "0.0.0.0/0" hoặc "123.45.67.89/32"
   }
 }
 ```
 
-**LÆ°u Ă½:** `security_groups = [...]` khĂ¡c vá»›i `cidr_blocks = [...]`:
-- `security_groups`: Cho phĂ©p traffic tá»« **tĂ i nguyĂªn thuá»™c Security Group** khĂ¡c (khĂ´ng cáº§n biáº¿t IP).
-- `cidr_blocks`: Cho phĂ©p traffic tá»« **dáº£i IP cá»¥ thá»ƒ**.
+**Lưu ý:** `security_groups = [...]` khác với `cidr_blocks = [...]`:
+- `security_groups`: Cho phép traffic từ **tài nguyên thuộc Security Group** khác (không cần biết IP).
+- `cidr_blocks`: Cho phép traffic từ **dải IP cụ thể**.
 
 ---
 
-## Pháº§n 9: Ingress, Expose vĂ  CĂ¡c CĂ¡ch Truy Cáº­p á»¨ng Dá»¥ng K8s
+## Phần 9: Ingress, Expose và Các Cách Truy Cập Ứng Dụng K8s
 
-### 9.1. "Expose" nghÄ©a lĂ  gĂ¬?
-- **Expose** = "PhÆ¡i bĂ y" á»©ng dá»¥ng ra bĂªn ngoĂ i. Máº·c Ä‘á»‹nh, Pod chá»‰ cĂ³ IP ná»™i bá»™ trong cluster, khĂ´ng ai tá»« bĂªn ngoĂ i truy cáº­p Ä‘Æ°á»£c. Muá»‘n ngÆ°á»i dĂ¹ng truy cáº­p Ä‘Æ°á»£c, báº¡n pháº£i **expose** nĂ³ thĂ´ng qua Service.
+### 9.1. "Expose" nghĩa là gì?
+- **Expose** = "Phơi bày" ứng dụng ra bên ngoài. Mặc định, Pod chỉ có IP nội bộ trong cluster, không ai từ bên ngoài truy cập được. Muốn người dùng truy cập được, bạn phải **expose** nó thông qua Service.
 
-### 9.2. So sĂ¡nh 3 loáº¡i Service trong K8s
+### 9.2. So sánh 3 loại Service trong K8s
 
-| Loáº¡i Service | Pháº¡m vi truy cáº­p | Port | Khi nĂ o dĂ¹ng? | Trong lab? |
+| Loại Service | Phạm vi truy cập | Port | Khi nào dùng? | Trong lab? |
 |---|---|---|---|---|
-| **ClusterIP** | Chá»‰ bĂªn trong cluster | Ná»™i bá»™ | Giao tiáº¿p giá»¯a cĂ¡c á»©ng dá»¥ng trong cĂ¹ng cluster | âŒ KhĂ´ng dĂ¹ng |
-| **NodePort** | Tá»« bĂªn ngoĂ i, qua IP cá»§a Node | 30000-32767 | Truy cáº­p trá»±c tiáº¿p qua IP mĂ¡y chá»§ + port | âœ… **Äang dĂ¹ng** (port 30080) |
-| **LoadBalancer** | Tá»« Internet, qua Load Balancer cá»§a cloud | 80/443 | Tá»± Ä‘á»™ng táº¡o Cloud LB (ELB trĂªn AWS) | âŒ KhĂ´ng dĂ¹ng (ta tá»± táº¡o ALB riĂªng) |
+| **ClusterIP** | Chỉ bên trong cluster | Nội bộ | Giao tiếp giữa các ứng dụng trong cùng cluster | ❌ Không dùng |
+| **NodePort** | Từ bên ngoài, qua IP của Node | 30000-32767 | Truy cập trực tiếp qua IP máy chủ + port | ✅ **Đang dùng** (port 30080) |
+| **LoadBalancer** | Từ Internet, qua Load Balancer của cloud | 80/443 | Tự động tạo Cloud LB (ELB trên AWS) | ❌ Không dùng (ta tự tạo ALB riêng) |
 
-### 9.3. Ingress lĂ  gĂ¬? Lab cĂ³ dĂ¹ng khĂ´ng?
-- **Ingress** lĂ  tĂ i nguyĂªn K8s dĂ¹ng Ä‘á»ƒ **Ä‘á»‹nh tuyáº¿n HTTP/HTTPS** tá»« bĂªn ngoĂ i vĂ o cĂ¡c Service bĂªn trong cluster (giá»‘ng nhÆ° má»™t reverse proxy ná»™i bá»™).
-- **Lab KHĂ”NG dĂ¹ng Ingress** vĂ¬ ta Ä‘Ă£ cĂ³ **AWS ALB** Ä‘Ă³ng vai trĂ² tÆ°Æ¡ng tá»± (nháº­n HTTP port 80 â†’ forward vĂ o NodePort 30080).
-- Ingress thÆ°á»ng Ä‘Æ°á»£c dĂ¹ng khi báº¡n cĂ³ **nhiá»u á»©ng dá»¥ng** trong 1 cluster vĂ  muá»‘n phĂ¢n luá»“ng theo URL path (vĂ­ dá»¥: `/api` â†’ Service A, `/web` â†’ Service B).
+### 9.3. Ingress là gì? Lab có dùng không?
+- **Ingress** là tài nguyên K8s dùng để **định tuyến HTTP/HTTPS** từ bên ngoài vào các Service bên trong cluster (giống như một reverse proxy nội bộ).
+- **Lab KHÔNG dùng Ingress** vì ta đã có **AWS ALB** đóng vai trò tương tự (nhận HTTP port 80 → forward vào NodePort 30080).
+- Ingress thường được dùng khi bạn có **nhiều ứng dụng** trong 1 cluster và muốn phân luồng theo URL path (ví dụ: `/api` → Service A, `/web` → Service B).
 
-### 9.4. TĂ³m táº¯t cĂ¡ch truy cáº­p á»©ng dá»¥ng trong Lab
+### 9.4. Tóm tắt cách truy cập ứng dụng trong Lab
 ```
-Internet â†’ ALB (Port 80) â†’ EC2:30080 (NodePort) â†’ Pod:80 (Nginx)
-            â†‘                    â†‘                      â†‘
-     AWS ALB thay tháº¿       Service NodePort         Container
-     vai trĂ² Ingress        expose ra Node          cháº¡y á»©ng dá»¥ng
+Internet → ALB (Port 80) → EC2:30080 (NodePort) → Pod:80 (Nginx)
+            ↑                    ↑                      ↑
+     AWS ALB thay thế       Service NodePort         Container
+     vai trò Ingress        expose ra Node          chạy ứng dụng
 ```
 
 ---
 
-## Pháº§n 10: `null_resource` vs `null` Provider â€” PhĂ¢n Biá»‡t RĂµ RĂ ng
+## Phần 10: `null_resource` vs `null` Provider — Phân Biệt Rõ Ràng
 
-### 10.1. `null` Provider lĂ  gĂ¬?
-- LĂ  má»™t **Terraform Provider** (plugin) do HashiCorp phĂ¡t hĂ nh.
-- ÄÆ°á»£c khai bĂ¡o ngáº§m Ä‘á»‹nh khi báº¡n sá»­ dá»¥ng `null_resource` (khĂ´ng cáº§n khai bĂ¡o tÆ°á»ng minh trong `required_providers`).
-- NĂ³ cung cáº¥p duy nháº¥t má»™t loáº¡i resource: `null_resource`.
+### 10.1. `null` Provider là gì?
+- Là một **Terraform Provider** (plugin) do HashiCorp phát hành.
+- Được khai báo ngầm định khi bạn sử dụng `null_resource` (không cần khai báo tường minh trong `required_providers`).
+- Nó cung cấp duy nhất một loại resource: `null_resource`.
 
-### 10.2. `null_resource` lĂ  gĂ¬?
-- LĂ  má»™t **tĂ i nguyĂªn áº£o** (khĂ´ng táº¡o ra thá»© gĂ¬ trĂªn cloud).
-- DĂ¹ng Ä‘á»ƒ **cháº¡y cĂ¡c tĂ¡c vá»¥ phá»¥ trá»£** mĂ  Terraform khĂ´ng há»— trá»£ sáºµn, vĂ­ dá»¥:
-  - SSH vĂ o mĂ¡y chá»§ Ä‘á»ƒ cháº¡y lá»‡nh (provisioner `remote-exec`)
-  - Cháº¡y script trĂªn mĂ¡y local (provisioner `local-exec`)
-  - Äá»£i má»™t Ä‘iá»u kiá»‡n nĂ o Ä‘Ă³ hoĂ n táº¥t trÆ°á»›c khi tiáº¿p tá»¥c
+### 10.2. `null_resource` là gì?
+- Là một **tài nguyên ảo** (không tạo ra thứ gì trên cloud).
+- Dùng để **chạy các tác vụ phụ trợ** mà Terraform không hỗ trợ sẵn, ví dụ:
+  - SSH vào máy chủ để chạy lệnh (provisioner `remote-exec`)
+  - Chạy script trên máy local (provisioner `local-exec`)
+  - Đợi một điều kiện nào đó hoàn tất trước khi tiếp tục
 
-### 10.3. Trong Lab, `null_resource` dĂ¹ng Ä‘á»ƒ lĂ m gĂ¬?
+### 10.3. Trong Lab, `null_resource` dùng để làm gì?
 ```hcl
 resource "null_resource" "wait_for_minikube" {
-  # Má»¥c Ä‘Ă­ch: SSH vĂ o EC2 Ä‘á»ƒ kiá»ƒm tra xem cloud-init vĂ  proxy Ä‘Ă£ sáºµn sĂ ng chÆ°a
-  # Náº¿u khĂ´ng cĂ³ bÆ°á»›c nĂ y, Kubernetes Provider sáº½ cá»‘ káº¿t ná»‘i proxy 8081 ngay láº­p tá»©c
-  # trong khi EC2 váº«n Ä‘ang cĂ i Docker/Kind â†’ Lá»—i "connection refused"
+  # Mục đích: SSH vào EC2 để kiểm tra xem cloud-init và proxy đã sẵn sàng chưa
+  # Nếu không có bước này, Kubernetes Provider sẽ cố kết nối proxy 8081 ngay lập tức
+  # trong khi EC2 vẫn đang cài Docker/Kind → Lỗi "connection refused"
 }
 ```
 
-### 10.4. TĂ³m táº¯t má»‘i quan há»‡
+### 10.4. Tóm tắt mối quan hệ
 ```
 null Provider (plugin)
-    â”‚
-    â””â”€â”€ cung cáº¥p â†’ null_resource (tĂ i nguyĂªn áº£o)
-                        â”‚
-                        â”œâ”€â”€ provisioner "remote-exec"  â†’ Cháº¡y lá»‡nh trĂªn mĂ¡y xa (EC2)
-                        â””â”€â”€ provisioner "local-exec"   â†’ Cháº¡y lá»‡nh trĂªn mĂ¡y local
+    │
+    └── cung cấp → null_resource (tài nguyên ảo)
+                        │
+                        ├── provisioner "remote-exec"  → Chạy lệnh trên máy xa (EC2)
+                        └── provisioner "local-exec"   → Chạy lệnh trên máy local
 ```
 
 ---
 
-## Pháº§n 11: Provisioner â€” CĂ¡c Loáº¡i Provisioner Trong Terraform
+## Phần 11: Provisioner — Các Loại Provisioner Trong Terraform
 
-### 11.1. Provisioner lĂ  gĂ¬?
-- LĂ  khá»‘i code bĂªn trong `resource` dĂ¹ng Ä‘á»ƒ **thá»±c thi hĂ nh Ä‘á»™ng bá»• sung** sau khi tĂ i nguyĂªn Ä‘Æ°á»£c táº¡o.
-- Terraform khĂ´ng khuyáº¿n khĂ­ch dĂ¹ng nhiá»u provisioner (vĂ¬ khĂ³ quáº£n lĂ½ state), nhÆ°ng trong má»™t sá»‘ trÆ°á»ng há»£p nhÆ° lab nĂ y thĂ¬ ráº¥t cáº§n thiáº¿t.
+### 11.1. Provisioner là gì?
+- Là khối code bên trong `resource` dùng để **thực thi hành động bổ sung** sau khi tài nguyên được tạo.
+- Terraform không khuyến khích dùng nhiều provisioner (vì khó quản lý state), nhưng trong một số trường hợp như lab này thì rất cần thiết.
 
-### 11.2. CĂ¡c loáº¡i Provisioner trong Lab
+### 11.2. Các loại Provisioner trong Lab
 
-| Provisioner | Cháº¡y á»Ÿ Ä‘Ă¢u? | Má»¥c Ä‘Ă­ch trong lab | File |
+| Provisioner | Chạy ở đâu? | Mục đích trong lab | File |
 |---|---|---|---|
-| `remote-exec` | TrĂªn mĂ¡y **EC2** (qua SSH) | Äá»£i cloud-init cháº¡y xong, kiá»ƒm tra proxy 8081 | `ec2.tf` |
-| `file` | Copy file tá»« local lĂªn **EC2** | (KhĂ´ng dĂ¹ng trong phiĂªn báº£n hiá»‡n táº¡i) | â€” |
-| `local-exec` | TrĂªn mĂ¡y **local** cá»§a báº¡n | (KhĂ´ng dĂ¹ng trong lab nĂ y) | â€” |
+| `remote-exec` | Trên máy **EC2** (qua SSH) | Đợi cloud-init chạy xong, kiểm tra proxy 8081 | `ec2.tf` |
+| `file` | Copy file từ local lên **EC2** | (Không dùng trong phiên bản hiện tại) | — |
+| `local-exec` | Trên máy **local** của bạn | (Không dùng trong lab này) | — |
 
 ### 11.3. `connection` block
-- Provisioner cáº§n biáº¿t **cĂ¡ch káº¿t ná»‘i** vĂ o mĂ¡y chá»§ Ä‘Ă­ch. Block `connection` cung cáº¥p thĂ´ng tin nĂ y:
+- Provisioner cần biết **cách kết nối** vào máy chủ đích. Block `connection` cung cấp thông tin này:
 ```hcl
 connection {
-  type        = "ssh"                                    # Giao thá»©c: SSH
-  user        = "ubuntu"                                 # User trĂªn EC2
-  private_key = tls_private_key.ssh.private_key_pem      # Key SSH (tá»« TLS provider)
-  host        = aws_instance.minikube.public_ip          # IP cĂ´ng khai cá»§a EC2
+  type        = "ssh"                                    # Giao thức: SSH
+  user        = "ubuntu"                                 # User trên EC2
+  private_key = tls_private_key.ssh.private_key_pem      # Key SSH (từ TLS provider)
+  host        = aws_instance.minikube.public_ip          # IP công khai của EC2
 }
 ```
 
 ---
 
-## Pháº§n 12: HĂ m Terraform Sá»­ Dá»¥ng Trong Lab
+## Phần 12: Hàm Terraform Sử Dụng Trong Lab
 
-| HĂ m | Giáº£i thĂ­ch | VĂ­ dá»¥ trong lab |
+| Hàm | Giải thích | Ví dụ trong lab |
 |---|---|---|
-| `merge(map1, map2)` | Gá»™p 2 map/object láº¡i | `merge(local.common_tags, { Name = "..." })` â€” Gá»™p tags chung + tag Name riĂªng |
-| `templatefile(path, vars)` | Äá»c file vĂ  thay tháº¿ biáº¿n `${...}` | `templatefile("scripts/user_data.sh", { proxy_port = 8081 })` |
-| `file(path)` | Äá»c ná»™i dung file thĂ nh chuá»—i | `file("scripts/index.html")` â€” Äá»c HTML nhĂºng vĂ o ConfigMap |
-| `sha256(string)` | TĂ­nh mĂ£ hash SHA-256 | `sha256(file("scripts/index.html"))` â€” Táº¡o hash Ä‘á»ƒ phĂ¡t hiá»‡n thay Ä‘á»•i |
+| `merge(map1, map2)` | Gộp 2 map/object lại | `merge(local.common_tags, { Name = "..." })` — Gộp tags chung + tag Name riêng |
+| `templatefile(path, vars)` | Đọc file và thay thế biến `${...}` | `templatefile("scripts/user_data.sh", { proxy_port = 8081 })` |
+| `file(path)` | Đọc nội dung file thành chuỗi | `file("scripts/index.html")` — Đọc HTML nhúng vào ConfigMap |
+| `sha256(string)` | Tính mã hash SHA-256 | `sha256(file("scripts/index.html"))` — Tạo hash để phát hiện thay đổi |
 
-### `templatefile()` vs `file()` â€” KhĂ¡c nhau tháº¿ nĂ o?
-- `file()`: Äá»c file nguyĂªn báº£n, **khĂ´ng** thay tháº¿ biáº¿n. DĂ¹ng khi ná»™i dung file lĂ  tÄ©nh (vĂ­ dá»¥: HTML).
-- `templatefile()`: Äá»c file vĂ  **thay tháº¿** cĂ¡c biáº¿n `${...}` bĂªn trong. DĂ¹ng khi file cáº§n tham sá»‘ hĂ³a (vĂ­ dá»¥: script shell cáº§n biáº¿t port).
+### `templatefile()` vs `file()` — Khác nhau thế nào?
+- `file()`: Đọc file nguyên bản, **không** thay thế biến. Dùng khi nội dung file là tĩnh (ví dụ: HTML).
+- `templatefile()`: Đọc file và **thay thế** các biến `${...}` bên trong. Dùng khi file cần tham số hóa (ví dụ: script shell cần biết port).
 
 ---
 
-## Pháº§n 13: Máº¡ng vĂ  CIDR â€” Giáº£i ThĂ­ch Dá»… Hiá»ƒu
+## Phần 13: Mạng và CIDR — Giải Thích Dễ Hiểu
 
-### 13.1. CIDR lĂ  gĂ¬?
-- **CIDR** (Classless Inter-Domain Routing) lĂ  cĂ¡ch viáº¿t táº¯t Ä‘á»ƒ biá»ƒu diá»…n má»™t dáº£i Ä‘á»‹a chá»‰ IP.
-- KĂ½ hiá»‡u: `IP/sá»‘_bit_máº¡ng`. Sá»‘ sau dáº¥u `/` cĂ ng nhá» thĂ¬ dáº£i IP cĂ ng rá»™ng.
+### 13.1. CIDR là gì?
+- **CIDR** (Classless Inter-Domain Routing) là cách viết tắt để biểu diễn một dải địa chỉ IP.
+- Ký hiệu: `IP/số_bit_mạng`. Số sau dấu `/` càng nhỏ thì dải IP càng rộng.
 
 ### 13.2. CIDR trong Lab
-| CIDR | Ă nghÄ©a | Sá»‘ IP kháº£ dá»¥ng | DĂ¹ng cho |
+| CIDR | Ý nghĩa | Số IP khả dụng | Dùng cho |
 |---|---|---|---|
-| `10.0.0.0/16` | ToĂ n bá»™ máº¡ng VPC | 65,536 IP | VPC chĂ­nh |
-| `10.0.1.0/24` | Máº¡ng con nhá» hÆ¡n | 256 IP | Subnet A (AZ-a) |
-| `10.0.2.0/24` | Máº¡ng con nhá» hÆ¡n | 256 IP | Subnet B (AZ-b) |
-| `0.0.0.0/0` | Táº¥t cáº£ IP trĂªn Internet | ToĂ n bá»™ | Route Table (default route), SG inbound |
-| `123.45.67.89/32` | ChĂ­nh xĂ¡c 1 IP duy nháº¥t | 1 IP | Biáº¿n `my_ip` (khĂ³a SSH cháº·t) |
+| `10.0.0.0/16` | Toàn bộ mạng VPC | 65,536 IP | VPC chính |
+| `10.0.1.0/24` | Mạng con nhỏ hơn | 256 IP | Subnet A (AZ-a) |
+| `10.0.2.0/24` | Mạng con nhỏ hơn | 256 IP | Subnet B (AZ-b) |
+| `0.0.0.0/0` | Tất cả IP trên Internet | Toàn bộ | Route Table (default route), SG inbound |
+| `123.45.67.89/32` | Chính xác 1 IP duy nhất | 1 IP | Biến `my_ip` (khóa SSH chặt) |
 
-### 13.3. Táº¡i sao Subnet `/24` náº±m trong VPC `/16`?
+### 13.3. Tại sao Subnet `/24` nằm trong VPC `/16`?
 ```
-VPC:      10.0. 0.0 /16  â†’ 10.0.x.x  (x cĂ³ thá»ƒ lĂ  0-255)
-Subnet A: 10.0. 1.0 /24  â†’ 10.0.1.x  (x cĂ³ thá»ƒ lĂ  0-255)
-Subnet B: 10.0. 2.0 /24  â†’ 10.0.2.x  (x cĂ³ thá»ƒ lĂ  0-255)
+VPC:      10.0. 0.0 /16  → 10.0.x.x  (x có thể là 0-255)
+Subnet A: 10.0. 1.0 /24  → 10.0.1.x  (x có thể là 0-255)
+Subnet B: 10.0. 2.0 /24  → 10.0.2.x  (x có thể là 0-255)
 ```
-Subnet lĂ  **táº­p con** cá»§a VPC. VPC cĂ³ 65,536 IP, má»—i Subnet chiáº¿m 256 IP.
+Subnet là **tập con** của VPC. VPC có 65,536 IP, mỗi Subnet chiếm 256 IP.
 
 ---
 
-## Pháº§n 14: Báº£ng Thuáº­t Ngá»¯ Tá»•ng Há»£p (Glossary)
+## Phần 14: Bảng Thuật Ngữ Tổng Hợp (Glossary)
 
-| Thuáº­t ngá»¯ | Viáº¿t táº¯t | Giáº£i thĂ­ch ngáº¯n gá»n |
+| Thuật ngữ | Viết tắt | Giải thích ngắn gọn |
 |---|---|---|
-| Infrastructure as Code | IaC | Viáº¿t code Ä‘á»ƒ quáº£n lĂ½ háº¡ táº§ng thay vĂ¬ click tay |
-| HashiCorp Configuration Language | HCL | NgĂ´n ngá»¯ viáº¿t file `.tf` cá»§a Terraform |
-| Virtual Private Cloud | VPC | Máº¡ng áº£o riĂªng cá»§a báº¡n trĂªn AWS |
-| Availability Zone | AZ | Trung tĂ¢m dá»¯ liá»‡u váº­t lĂ½ trong 1 Region |
-| Internet Gateway | IGW | Cá»•ng káº¿t ná»‘i VPC ra Internet |
-| Application Load Balancer | ALB | Bá»™ cĂ¢n báº±ng táº£i HTTP/HTTPS (Layer 7) |
-| Network Load Balancer | NLB | Bá»™ cĂ¢n báº±ng táº£i TCP/UDP (Layer 4) |
-| Security Group | SG | TÆ°á»ng lá»­a áº£o gáº¯n vĂ o tĂ i nguyĂªn AWS |
-| Amazon Machine Image | AMI | Báº£n snapshot há»‡ Ä‘iá»u hĂ nh Ä‘á»ƒ táº¡o EC2 |
-| Elastic Compute Cloud | EC2 | Dá»‹ch vá»¥ mĂ¡y chá»§ áº£o cá»§a AWS |
-| Kubernetes | K8s | Há»‡ thá»‘ng Ä‘iá»u phá»‘i container |
-| Kubernetes in Docker | Kind | CĂ´ng cá»¥ cháº¡y cluster K8s bĂªn trong Docker |
-| Container | â€” | Tiáº¿n trĂ¬nh á»©ng dá»¥ng cháº¡y cĂ¡ch ly (Docker) |
-| Pod | â€” | ÄÆ¡n vá»‹ nhá» nháº¥t trong K8s, bá»c 1+ container |
-| Node | â€” | MĂ¡y chá»§ cháº¡y Pod (EC2 trong lab) |
-| Namespace | NS | KhĂ´ng gian tĂªn Ä‘á»ƒ phĂ¢n tĂ¡ch tĂ i nguyĂªn K8s |
-| ConfigMap | CM | LÆ°u trá»¯ dá»¯ liá»‡u cáº¥u hĂ¬nh dáº¡ng key-value |
-| Deployment | Deploy | Quáº£n lĂ½ Pod: táº¡o, scale, update, rollback |
-| Service | SVC | Expose Pod ra ngoĂ i qua IP/Port á»•n Ä‘á»‹nh |
-| NodePort | â€” | Loáº¡i Service má»Ÿ port 30000-32767 trĂªn Node |
-| ClusterIP | â€” | Loáº¡i Service chá»‰ truy cáº­p ná»™i bá»™ cluster |
-| Ingress | â€” | Äá»‹nh tuyáº¿n HTTP/HTTPS vĂ o cluster (lab khĂ´ng dĂ¹ng) |
-| Provisioner | â€” | Cháº¡y script bá»• sung sau khi táº¡o tĂ i nguyĂªn |
-| User Data | â€” | Script shell cháº¡y tá»± Ä‘á»™ng khi EC2 khá»Ÿi Ä‘á»™ng láº§n Ä‘áº§u |
-| CIDR | â€” | CĂ¡ch biá»ƒu diá»…n dáº£i Ä‘á»‹a chá»‰ IP (vĂ­ dá»¥: `10.0.0.0/16`) |
-| Health Check | â€” | Kiá»ƒm tra Ä‘á»‹nh ká»³ xem á»©ng dá»¥ng cĂ²n sá»‘ng khĂ´ng |
-| Target Group | TG | NhĂ³m mĂ¡y chá»§ Ä‘Ă­ch mĂ  ALB forward traffic tá»›i |
-| High Availability | HA | Kháº£ nÄƒng hoáº¡t Ä‘á»™ng liĂªn tá»¥c, khĂ´ng giĂ¡n Ä‘oáº¡n |
-| Stateful (Security Group) | â€” | Cho phĂ©p response tá»± Ä‘á»™ng Ä‘i ra náº¿u request Ä‘Ă£ Ä‘Æ°á»£c cho vĂ o |
-| `depends_on` | â€” | RĂ ng buá»™c thá»© tá»± táº¡o/xĂ³a tĂ i nguyĂªn trong Terraform |
-| `terraform.tfstate` | State | File JSON lÆ°u tráº¡ng thĂ¡i háº¡ táº§ng hiá»‡n táº¡i |
+| Infrastructure as Code | IaC | Viết code để quản lý hạ tầng thay vì click tay |
+| HashiCorp Configuration Language | HCL | Ngôn ngữ viết file `.tf` của Terraform |
+| Virtual Private Cloud | VPC | Mạng ảo riêng của bạn trên AWS |
+| Availability Zone | AZ | Trung tâm dữ liệu vật lý trong 1 Region |
+| Internet Gateway | IGW | Cổng kết nối VPC ra Internet |
+| Application Load Balancer | ALB | Bộ cân bằng tải HTTP/HTTPS (Layer 7) |
+| Network Load Balancer | NLB | Bộ cân bằng tải TCP/UDP (Layer 4) |
+| Security Group | SG | Tường lửa ảo gắn vào tài nguyên AWS |
+| Amazon Machine Image | AMI | Bản snapshot hệ điều hành để tạo EC2 |
+| Elastic Compute Cloud | EC2 | Dịch vụ máy chủ ảo của AWS |
+| Kubernetes | K8s | Hệ thống điều phối container |
+| Kubernetes in Docker | Kind | Công cụ chạy cluster K8s bên trong Docker |
+| Container | — | Tiến trình ứng dụng chạy cách ly (Docker) |
+| Pod | — | Đơn vị nhỏ nhất trong K8s, bọc 1+ container |
+| Node | — | Máy chủ chạy Pod (EC2 trong lab) |
+| Namespace | NS | Không gian tên để phân tách tài nguyên K8s |
+| ConfigMap | CM | Lưu trữ dữ liệu cấu hình dạng key-value |
+| Deployment | Deploy | Quản lý Pod: tạo, scale, update, rollback |
+| Service | SVC | Expose Pod ra ngoài qua IP/Port ổn định |
+| NodePort | — | Loại Service mở port 30000-32767 trên Node |
+| ClusterIP | — | Loại Service chỉ truy cập nội bộ cluster |
+| Ingress | — | Định tuyến HTTP/HTTPS vào cluster (lab không dùng) |
+| Provisioner | — | Chạy script bổ sung sau khi tạo tài nguyên |
+| User Data | — | Script shell chạy tự động khi EC2 khởi động lần đầu |
+| CIDR | — | Cách biểu diễn dải địa chỉ IP (ví dụ: `10.0.0.0/16`) |
+| Health Check | — | Kiểm tra định kỳ xem ứng dụng còn sống không |
+| Target Group | TG | Nhóm máy chủ đích mà ALB forward traffic tới |
+| High Availability | HA | Khả năng hoạt động liên tục, không gián đoạn |
+| Stateful (Security Group) | — | Cho phép response tự động đi ra nếu request đã được cho vào |
+| `depends_on` | — | Ràng buộc thứ tự tạo/xóa tài nguyên trong Terraform |
+| `terraform.tfstate` | State | File JSON lưu trạng thái hạ tầng hiện tại |
+

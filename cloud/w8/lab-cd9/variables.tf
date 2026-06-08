@@ -32,22 +32,3 @@ variable "proxy_port" {
   default     = 8081
   description = "Port proxy dung de Terraform ket noi vao K8s API server tren EC2"
 }
-
-# ===== RDS MySQL Variables =====
-variable "db_name" {
-  type        = string
-  default     = "webapp_db"
-  description = "Ten database MySQL tren RDS"
-}
-
-variable "db_username" {
-  type        = string
-  default     = "admin"
-  description = "Username cho MySQL RDS"
-}
-
-variable "db_instance_class" {
-  type        = string
-  default     = "db.t3.micro"
-  description = "Loai instance cho RDS (db.t3.micro thuoc Free Tier)"
-}
