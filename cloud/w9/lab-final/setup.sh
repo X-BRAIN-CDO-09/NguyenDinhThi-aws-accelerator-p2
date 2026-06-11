@@ -40,11 +40,11 @@ log "Kubernetes cluster: OK ($(kubectl get nodes --no-headers | wc -l) node)"
 # ── Step 1: Install ArgoCD ──────────────────────────────────
 step "1. Cài ArgoCD"
 
-if kubectl get ns argocd &>/dev/null; then
-  log "ArgoCD namespace đã tồn tại, bỏ qua cài"
+if kubectl get deployment argocd-server -n argocd &>/dev/null; then
+  log "ArgoCD đã được cài đặt, bỏ qua cài"
 else
-  kubectl create namespace argocd
-  kubectl apply -n argocd \
+  kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
+  kubectl apply --server-side -n argocd \
     -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
   log "ArgoCD đang cài..."
   kubectl wait --for=condition=available deployment/argocd-server \
@@ -80,7 +80,11 @@ fi
 
 # Load vào minikube nếu đang dùng minikube
 if command -v minikube &>/dev/null; then
-  PROFILE=$(minikube profile 2>/dev/null || echo "minikube")
+  # Clean asterisk and whitespace from minikube profile output
+  PROFILE=$(minikube profile 2>/dev/null | tr -d '*' | xargs || echo "w9")
+  if [ -z "${PROFILE}" ] || [ "${PROFILE}" = "minikube" ]; then
+    PROFILE="w9"
+  fi
   warn "Loading image vào minikube profile: ${PROFILE}"
   minikube image load w9-api:1 -p "${PROFILE}"
   log "Image loaded vào minikube"

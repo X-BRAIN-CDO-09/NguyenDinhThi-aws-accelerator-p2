@@ -15,7 +15,7 @@ spec:
   source:
     repoURL: https://github.com/X-BRAIN-CDO-09/NguyenDinhThi-aws-accelerator-p2.git
     targetRevision: main
-    path: argocd/apps          # root trỏ tới folder chứa các Application con
+    path: cloud/w9/lab-final/argocd/apps          # root trỏ tới folder chứa các Application con
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd           # Application objects sống ở ns argocd

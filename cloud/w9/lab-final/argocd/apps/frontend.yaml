@@ -13,9 +13,9 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/<YOUR_USERNAME>/<YOUR_REPO>.git
+    repoURL: https://github.com/X-BRAIN-CDO-09/NguyenDinhThi-aws-accelerator-p2.git
     targetRevision: main
-    path: frontend/k8s        # trỏ tới folder manifest thật của frontend
+    path: cloud/w9/lab-final/frontend/k8s        # trỏ tới folder manifest thật của frontend
   destination:
     server: https://kubernetes.default.svc
     namespace: demo
