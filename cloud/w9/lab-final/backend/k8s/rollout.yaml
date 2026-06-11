@@ -45,7 +45,7 @@ spec:
             - name: ERROR_RATE
               value: "0.5"          # Đổi sang "0.5" để làm bản stable healthy
             - name: VERSION
-              value: "v3"           # Đổi sang "v3" để làm bản stable healthy lỗi
+              value: "v3-abort"     # Đổi để trigger rollout mới và test abort
             - name: DB_HOST
               valueFrom:
                 secretKeyRef:
