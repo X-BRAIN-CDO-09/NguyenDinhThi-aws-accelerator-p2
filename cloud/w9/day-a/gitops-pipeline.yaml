@@ -1,0 +1,53 @@
+name: GitOps CI/CD Pipeline
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'cloud/w9/day-a/**'
+  push:
+    branches:
+      - main
+    paths:
+      - 'cloud/w9/day-a/**'
+
+jobs:
+  validate:
+    name: Dry-run & Lint Manifests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install kube-linter
+        run: |
+          curl -L -o kube-linter.tar.gz https://github.com/stackrox/kube-linter/releases/download/v0.6.8/kube-linter-linux.tar.gz
+          tar -xf kube-linter.tar.gz
+          sudo mv kube-linter /usr/local/bin/
+
+      - name: Run kube-linter
+        run: |
+          kube-linter lint cloud/w9/day-a/k8s-manifests.yaml
+
+      - name: Setup Minikube (Dry-run validation)
+        uses: medyagh/setup-minikube@master
+
+      - name: Dry-run Apply
+        run: |
+          kubectl apply --dry-run=client -f cloud/w9/day-a/k8s-manifests.yaml
+
+  deploy:
+    name: Sync with ArgoCD
+    needs: validate
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Trigger ArgoCD Sync
+        run: |
+          echo "Automated sync is enabled on ArgoCD. Merging to main will trigger self-heal & auto-prune."
+          echo "Alternatively, trigger manually via ArgoCD CLI:"
+          echo "argocd app sync simple-app --auth-token \${{ secrets.ARGOCD_TOKEN }} --server \${{ secrets.ARGOCD_SERVER }}"
