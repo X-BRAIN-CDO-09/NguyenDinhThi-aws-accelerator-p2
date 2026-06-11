@@ -1,0 +1,128 @@
+# ============================================================
+# AlertManager Secret Config
+# Gap 1 + Gap 5: Email notification + Inhibition rules
+#
+# Cấu trúc:
+#   - global: SMTP settings (Gmail hoặc email cá nhân)
+#   - route:  Phân loại alert → receiver phù hợp
+#   - inhibit_rules: FastBurn → suppress SlowBurn (tránh noise)
+#   - receivers: email_platform (critical), email_warning (warning)
+#
+# ⚠️ Cần đổi:
+#   REPLACE_YOUR_EMAIL@gmail.com  → email cá nhân của bạn
+#   REPLACE_APP_PASSWORD          → Gmail App Password (16 ký tự)
+#   Tạo App Password: myaccount.google.com/apppasswords
+# ============================================================
+apiVersion: v1
+kind: Secret
+metadata:
+  name: alertmanager-kube-prometheus-stack
+  namespace: monitoring
+  labels:
+    app: kube-prometheus-stack-alertmanager
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+type: Opaque
+stringData:
+  alertmanager.yaml: |
+    global:
+      # ── SMTP Settings (Gmail) ─────────────────────────────
+      smtp_smarthost: 'smtp.gmail.com:587'
+      smtp_from: 'thihtktk@gmail.com'
+      smtp_auth_username: 'thihtktk@gmail.com'
+      smtp_auth_password: 'fzpxdgferuhralfw'   # Gmail App Password
+      smtp_require_tls: true
+
+      resolve_timeout: 5m
+
+    # ── Route Tree ─────────────────────────────────────────
+    # Cấu trúc: root → children theo severity
+    route:
+      # Root route: mặc định gửi email warning
+      receiver: 'email-warning'
+      group_by: ['alertname', 'namespace', 'slo']
+      group_wait: 30s       # Đợi 30s để gom các alert liên quan
+      group_interval: 5m    # Gửi update mỗi 5 phút nếu vẫn firing
+      repeat_interval: 4h   # Nhắc lại mỗi 4h nếu chưa resolve
+
+      routes:
+        # ── Critical alerts → email ngay lập tức ──
+        - matchers:
+            - severity = "critical"
+          receiver: 'email-critical'
+          group_wait: 10s         # Critical: gửi nhanh hơn
+          group_interval: 2m
+          repeat_interval: 1h     # Nhắc lại mỗi 1h
+          continue: false         # Không pass xuống route khác
+
+        # ── Warning alerts → batched email ──
+        - matchers:
+            - severity = "warning"
+          receiver: 'email-warning'
+          group_wait: 2m          # Warning: gom alert trong 2 phút
+          group_interval: 10m
+          repeat_interval: 6h
+          continue: false
+
+    # ── Gap 5: Inhibition Rules ─────────────────────────────
+    # Khi BackendAPIFastBurn (critical) đang firing:
+    #   → Suppress BackendAPISlowBurn (warning) — cùng nguồn gốc
+    # Tránh: nhận cả 2 email về cùng 1 sự cố
+    inhibit_rules:
+      - source_matchers:
+          - alertname = "BackendAPIFastBurn"
+          - severity = "critical"
+        target_matchers:
+          - alertname = "BackendAPISlowBurn"
+          - severity = "warning"
+        equal: ['namespace', 'slo']   # Chỉ inhibit nếu cùng namespace + slo
+
+      # SLO Breach đang fire → suppress cả FastBurn và SlowBurn
+      - source_matchers:
+          - alertname = "BackendAPISLOBreach"
+          - severity = "critical"
+        target_matchers:
+          - severity =~ "warning|critical"
+          - alertname =~ "BackendAPIFastBurn|BackendAPISlowBurn"
+        equal: ['namespace']
+
+    # ── Receivers ──────────────────────────────────────────
+    receivers:
+      # Critical: Plain text nhanh + subject rõ ràng
+      - name: 'email-critical'
+        email_configs:
+          - to: 'thihtktk@gmail.com'
+            send_resolved: true
+            headers:
+              Subject: '🔥 [CRITICAL] {{ .GroupLabels.alertname }} - W9 Lab'
+            html: |
+              <h2>🚨 Alert CRITICAL</h2>
+              {{ range .Alerts }}
+              <table border="1" style="border-collapse:collapse;padding:8px">
+                <tr><td><b>Alert</b></td><td>{{ .Labels.alertname }}</td></tr>
+                <tr><td><b>Namespace</b></td><td>{{ .Labels.namespace }}</td></tr>
+                <tr><td><b>Summary</b></td><td>{{ .Annotations.summary }}</td></tr>
+                <tr><td><b>Description</b></td><td>{{ .Annotations.description }}</td></tr>
+                <tr><td><b>Started</b></td><td>{{ .StartsAt.Format "2006-01-02 15:04:05" }}</td></tr>
+              </table><br>
+              <p><b>Action:</b> kubectl argo rollouts abort backend -n demo</p>
+              <p><a href="http://localhost:9090/alerts">Prometheus Alerts</a> | <a href="http://localhost:3000">Grafana Dashboard</a></p>
+              {{ end }}
+
+      # Warning: Batched, less urgent
+      - name: 'email-warning'
+        email_configs:
+          - to: 'thihtktk@gmail.com'
+            send_resolved: true
+            headers:
+              Subject: '⚠️ [WARNING] {{ .GroupLabels.alertname }} - W9 Lab'
+            html: |
+              <h2>⚠️ Alert WARNING</h2>
+              {{ range .Alerts }}
+              <table border="1" style="border-collapse:collapse;padding:8px">
+                <tr><td><b>Alert</b></td><td>{{ .Labels.alertname }}</td></tr>
+                <tr><td><b>Summary</b></td><td>{{ .Annotations.summary }}</td></tr>
+                <tr><td><b>Description</b></td><td>{{ .Annotations.description }}</td></tr>
+              </table><br>
+              {{ end }}
+              <p>Action: Create ticket and review canary rollout</p>
