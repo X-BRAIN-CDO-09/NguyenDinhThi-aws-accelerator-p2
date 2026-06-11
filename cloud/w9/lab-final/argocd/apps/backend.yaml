@@ -1,0 +1,27 @@
+# ============================================================
+# ArgoCD Application: backend
+# Wave 1 — sau khi infra (Prometheus) đã ready
+# Trỏ tới backend/k8s/ chứa: Rollout, AnalysisTemplate, Services
+# ============================================================
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: backend
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/<YOUR_USERNAME>/<YOUR_REPO>.git
+    targetRevision: main
+    path: backend/k8s         # trỏ tới folder manifest thật của backend
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: demo
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

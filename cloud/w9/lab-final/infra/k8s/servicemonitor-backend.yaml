@@ -1,0 +1,26 @@
+# ============================================================
+# ServiceMonitor: backend-metrics
+# Lab 3 buổi chiều: Prometheus tự scrape /metrics của Flask app
+# Label "release: kube-prometheus-stack" để Prometheus nhận ra
+# ============================================================
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: backend-metrics
+  namespace: monitoring      # ServiceMonitor ở monitoring, scrape demo
+  labels:
+    release: kube-prometheus-stack
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  namespaceSelector:
+    matchNames:
+      - demo                 # scrape Pods ở namespace demo
+  selector:
+    matchLabels:
+      app: backend           # chọn Service có label app: backend
+  endpoints:
+    - port: http             # port name trong Service
+      path: /metrics         # prometheus_flask_exporter tự tạo endpoint này
+      interval: 15s          # scrape mỗi 15 giây
+      scrapeTimeout: 10s

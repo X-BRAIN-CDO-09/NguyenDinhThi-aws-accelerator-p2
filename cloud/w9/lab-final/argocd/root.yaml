@@ -1,0 +1,27 @@
+# ============================================================
+# ROOT APPLICATION — App-of-Apps Bootstrap
+# Apply 1 lần duy nhất: kubectl apply -f argocd/root.yaml
+# Sau đó mọi thứ tự động qua Git
+# ============================================================
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: root
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/X-BRAIN-CDO-09/NguyenDinhThi-aws-accelerator-p2.git
+    targetRevision: main
+    path: argocd/apps          # root trỏ tới folder chứa các Application con
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd           # Application objects sống ở ns argocd
+  syncPolicy:
+    automated:
+      prune: true               # Xóa App con nếu xóa file khỏi Git
+      selfHeal: true            # Tự sửa nếu ai edit tay
+    syncOptions:
+      - CreateNamespace=true

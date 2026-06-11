@@ -1,0 +1,95 @@
+# ============================================================
+# Argo Rollout: backend (Canary Strategy)
+# Lab 3 + Lab 4 + Challenge từ slide buổi chiều
+#
+# Canary Steps:
+#   20% → đợi 30s → 50% → đợi 30s → 100%
+#
+# AnalysisTemplate tự chấm success rate:
+#   success_rate < 95% → ABORT → rollback tự động
+#
+# Để test Lab 4 (manual promote):
+#   đổi pause: {duration: 30s} → pause: {}
+#
+# Để test Challenge (auto-abort):
+#   deploy với env ERROR_RATE: "0.2" → xem tự abort
+# ============================================================
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: backend
+  namespace: demo
+  labels:
+    app: backend
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  replicas: 4
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+        - name: api
+          image: w9-api:1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: ERROR_RATE
+              value: "0"          # Đổi sang "0.2" để test canary abort
+            - name: VERSION
+              value: "v1"         # Đổi sang "v2" để trigger canary
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secret
+                  key: DB_HOST
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secret
+                  key: DB_PASSWORD
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "200m"
+              memory: "128Mi"
+  strategy:
+    canary:
+      canaryService: backend-preview-service   # 20→50% traffic
+      stableService: backend-service           # stable traffic
+      # Challenge: AnalysisTemplate tự chấm — bỏ comment để enable auto-abort
+      analysis:
+        templates:
+          - templateName: success-rate-analysis
+        startingStep: 1   # bắt đầu chấm từ bước 1 (sau setWeight 20%)
+        args:
+          - name: namespace
+            value: demo
+      steps:
+        - setWeight: 20
+        - pause: {duration: 30s}   # Lab 4: đổi thành pause: {} để promote tay
+        - setWeight: 50
+        - pause: {duration: 30s}
+        - setWeight: 100

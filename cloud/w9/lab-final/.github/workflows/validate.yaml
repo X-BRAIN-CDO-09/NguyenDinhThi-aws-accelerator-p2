@@ -1,0 +1,45 @@
+name: validate-manifests
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'backend/k8s/**'
+      - 'frontend/k8s/**'
+      - 'infra/k8s/**'
+      - 'argocd/**'
+
+jobs:
+  validate:
+    name: Validate K8s Manifests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install kubeconform
+        run: |
+          curl -sSLo kc.tgz https://github.com/yannh/kubeconform/releases/download/v0.6.7/kubeconform-linux-amd64.tar.gz
+          tar -xzf kc.tgz && sudo mv kubeconform /usr/local/bin/
+          kubeconform -v
+
+      - name: Validate backend manifests
+        run: |
+          kubeconform -strict -summary \
+            -skip Rollout,AnalysisTemplate,ServiceMonitor,PrometheusRule \
+            backend/k8s/
+
+      - name: Validate frontend manifests
+        run: kubeconform -strict -summary frontend/k8s/
+
+      - name: Validate infra manifests
+        run: |
+          kubeconform -strict -summary \
+            -skip PrometheusRule,ServiceMonitor,OpenTelemetryCollector \
+            infra/k8s/
+
+      - name: Validate ArgoCD apps
+        run: |
+          kubeconform -strict -summary \
+            -skip Application \
+            argocd/apps/

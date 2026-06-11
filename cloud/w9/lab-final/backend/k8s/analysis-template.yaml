@@ -1,0 +1,47 @@
+# ============================================================
+# AnalysisTemplate: success-rate-analysis
+# Challenge từ slide buổi chiều
+#
+# Query Prometheus mỗi 30s để đo success rate của canary
+# Nếu success_rate < 95% và fail 3 lần liên tiếp → ABORT tự động
+#
+# Metric dùng: flask_http_request_total (từ prometheus_flask_exporter)
+# ============================================================
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: success-rate-analysis
+  namespace: demo
+spec:
+  args:
+    - name: namespace
+      value: demo
+  metrics:
+    # Metric 1: Success rate — từ slide buổi chiều
+    # query Prometheus tự chấm: >=95% success → HEALTHY, <95% → FAILURE
+    - name: success-rate
+      initialDelay: 20s         # đợi 20s sau canary start để có đủ data
+      interval: 30s             # query mỗi 30 giây
+      count: 5                  # query tổng 5 lần (150s)
+      successCondition: result[0] >= 0.95   # >=95% thành công → OK
+      failureLimit: 2           # tệ 2 lần liên tiếp → ABORT
+      provider:
+        prometheus:
+          address: http://kube-prometheus-stack-prometheus.monitoring.svc.cluster.local:9090
+          query: |
+            sum(rate(flask_http_request_total{namespace="demo",status!~"5.."}[2m]))
+            /
+            sum(rate(flask_http_request_total{namespace="demo"}[2m]))
+
+    # Metric 2: Request rate > 0 (service đang nhận traffic)
+    - name: request-rate-alive
+      initialDelay: 20s
+      interval: 30s
+      count: 3
+      successCondition: result[0] >= 0
+      failureLimit: 3
+      provider:
+        prometheus:
+          address: http://kube-prometheus-stack-prometheus.monitoring.svc.cluster.local:9090
+          query: |
+            scalar(sum(rate(flask_http_request_total{namespace="demo"}[1m])) or vector(0))

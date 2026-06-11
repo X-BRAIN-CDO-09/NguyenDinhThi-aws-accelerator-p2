@@ -1,0 +1,122 @@
+# ============================================================
+# PrometheusRule: SLO Burn-Rate Alerts
+# BUG FIX từ lab-day-d cũ: status!~"6h" → status=~"5.."
+#
+# Từ slide buổi chiều:
+#   SLO: 99.5% availability trong 30 ngày
+#   Error budget: 0.5% = 216 phút/tháng
+#
+# Multi-window burn rate alerting:
+#   Fast Burn (1h×5m): burn rate > 14.4 → cháy trong ~2 ngày → CRITICAL
+#   Slow Burn (6h×30m): burn rate > 6   → cháy trong 5 ngày → WARNING
+# ============================================================
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: slo-burn-rate-alerts
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+    role: alert-rules
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  groups:
+    - name: backend-api-slo
+      interval: 30s
+      rules:
+        # ── SLI Recording Rule ──────────────────────────────────
+        # Tính sẵn success rate để dùng trong các alert
+        - record: job:flask_http_request_success_rate:ratio_rate5m
+          expr: |
+            sum(rate(flask_http_request_total{namespace="demo",status!~"5.."}[5m]))
+            /
+            sum(rate(flask_http_request_total{namespace="demo"}[5m]))
+
+        - record: job:flask_http_request_success_rate:ratio_rate1h
+          expr: |
+            sum(rate(flask_http_request_total{namespace="demo",status!~"5.."}[1h]))
+            /
+            sum(rate(flask_http_request_total{namespace="demo"}[1h]))
+
+        - record: job:flask_http_request_success_rate:ratio_rate6h
+          expr: |
+            sum(rate(flask_http_request_total{namespace="demo",status!~"5.."}[6h]))
+            /
+            sum(rate(flask_http_request_total{namespace="demo"}[6h]))
+
+        # ── Fast Burn Alert (1h × 5m) ────────────────────────────
+        # Burn rate > 14.4 → error budget sẽ cạn trong ~2 ngày
+        # Cần xử lý NGAY (Page / PagerDuty / Slack critical)
+        - alert: BackendAPIFastBurn
+          expr: |
+            (
+              sum(rate(flask_http_request_total{namespace="demo",status=~"5.."}[1h]))
+              /
+              sum(rate(flask_http_request_total{namespace="demo"}[1h]))
+            ) > 0.144
+            and
+            (
+              sum(rate(flask_http_request_total{namespace="demo",status=~"5.."}[5m]))
+              /
+              sum(rate(flask_http_request_total{namespace="demo"}[5m]))
+            ) > 0.144
+          for: 2m
+          labels:
+            severity: critical
+            team: platform
+            slo: availability
+          annotations:
+            summary: "🔥 Fast Burn: Backend API error budget cháy nhanh"
+            description: |
+              Error rate vượt ngưỡng fast burn (>14.4×).
+              Error budget sẽ cạn trong ~2 ngày nếu không xử lý.
+              Current error rate: {{ $value | humanizePercentage }}
+              Action: Check Grafana → Canary rollout → kubectl argo rollouts abort backend -n demo
+
+        # ── Slow Burn Alert (6h × 30m) ────────────────────────────
+        # BUG FIX: status!~"6h" → status=~"5.."   (đây là lỗi ở lab-day-d cũ)
+        # Burn rate > 6 → error budget sẽ cạn trong ~5 ngày
+        # Rò rỉ âm thầm, cần tạo ticket xử lý trong ngày
+        - alert: BackendAPISlowBurn
+          expr: |
+            (
+              sum(rate(flask_http_request_total{namespace="demo",status=~"5.."}[6h]))
+              /
+              sum(rate(flask_http_request_total{namespace="demo"}[6h]))
+            ) > 0.06
+            and
+            (
+              sum(rate(flask_http_request_total{namespace="demo",status=~"5.."}[30m]))
+              /
+              sum(rate(flask_http_request_total{namespace="demo"}[30m]))
+            ) > 0.06
+          for: 15m
+          labels:
+            severity: warning
+            team: platform
+            slo: availability
+          annotations:
+            summary: "⚠️ Slow Burn: Backend API error budget rò rỉ chậm"
+            description: |
+              Error rate vượt ngưỡng slow burn (>6×).
+              Error budget sẽ cạn trong ~5 ngày nếu không xử lý.
+              Current error rate: {{ $value | humanizePercentage }}
+              Action: Tạo ticket, kiểm tra logs, xem xét rollback canary.
+
+        # ── SLO Breach Alert ──────────────────────────────────────
+        # Khi SLI thực tế < SLO 99.5% trong 1h
+        - alert: BackendAPISLOBreach
+          expr: |
+            (
+              sum(rate(flask_http_request_total{namespace="demo",status!~"5.."}[1h]))
+              /
+              sum(rate(flask_http_request_total{namespace="demo"}[1h]))
+            ) < 0.995
+          for: 5m
+          labels:
+            severity: critical
+            team: platform
+          annotations:
+            summary: "🚨 SLO Breach: Backend API dưới ngưỡng 99.5%"
+            description: "Current SLI: {{ $value | humanizePercentage }}. SLO: 99.5%."

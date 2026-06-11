@@ -1,0 +1,27 @@
+# ============================================================
+# ArgoCD Application: frontend
+# Wave 2 — sau cùng, sau khi backend đã healthy
+# Trỏ tới frontend/k8s/ chứa: Deployment, ConfigMap (dark/light UI), Service
+# ============================================================
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: frontend
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/<YOUR_USERNAME>/<YOUR_REPO>.git
+    targetRevision: main
+    path: frontend/k8s        # trỏ tới folder manifest thật của frontend
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: demo
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

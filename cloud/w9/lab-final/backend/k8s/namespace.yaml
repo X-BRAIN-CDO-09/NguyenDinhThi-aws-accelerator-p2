@@ -1,0 +1,13 @@
+# ============================================================
+# Namespace: demo
+# Sync Wave -1 — tạo namespace TRƯỚC tất cả resources
+# ============================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: demo
+  labels:
+    name: demo
+    environment: lab
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
