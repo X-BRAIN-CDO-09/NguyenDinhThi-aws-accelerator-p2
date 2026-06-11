@@ -68,15 +68,16 @@ export default function () {
 
 // ── Summary ────────────────────────────────────────────────
 export function handleSummary(data) {
-  const dur = data.metrics.http_req_duration;
-  const errR = data.metrics.error_rate;
+  var totalReqs = data.metrics.total_requests && data.metrics.total_requests.values ? data.metrics.total_requests.values.count : 'N/A';
+  var errR = data.metrics.error_rate && data.metrics.error_rate.values ? data.metrics.error_rate.values.rate : 0;
+  var dur = data.metrics.http_req_duration && data.metrics.http_req_duration.values ? data.metrics.http_req_duration.values['p(95)'] : null;
 
   console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   console.log('  W9 Load Test Summary');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log(`  Total Requests : ${data.metrics.total_requests?.values?.count || 'N/A'}`);
-  console.log(`  Error Rate     : ${((errR?.values?.rate || 0) * 100).toFixed(1)}%`);
-  console.log(`  p95 Latency    : ${dur?.values?.['p(95)']?.toFixed(0) || 'N/A'}ms`);
+  console.log('  Total Requests : ' + totalReqs);
+  console.log('  Error Rate     : ' + (errR * 100).toFixed(1) + '%');
+  console.log('  p95 Latency    : ' + (dur ? dur.toFixed(0) + 'ms' : 'N/A'));
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   console.log('  Kiểm tra:');
   console.log('  - Prometheus Alert: BackendAPIFastBurn fired?');
