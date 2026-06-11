@@ -93,4 +93,4 @@ spec:
         - setWeight: 50
         - pause: {duration: 30s}
         - setWeight: 100
-# Trigger CI validation run
+# Trigger full CI build validate run
