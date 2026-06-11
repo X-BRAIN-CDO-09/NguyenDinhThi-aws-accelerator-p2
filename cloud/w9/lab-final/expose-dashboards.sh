@@ -24,6 +24,7 @@ kubectl port-forward svc/frontend-service -n demo 30090:80 --address 0.0.0.0 >/d
 kubectl port-forward svc/kube-prometheus-stack-grafana -n monitoring 3000:80 --address 0.0.0.0 >/dev/null 2>&1 &
 kubectl port-forward svc/argocd-server -n argocd 8080:443 --address 0.0.0.0 >/dev/null 2>&1 &
 kubectl port-forward svc/kube-prometheus-stack-prometheus -n monitoring 9090:9090 --address 0.0.0.0 >/dev/null 2>&1 &
+kubectl port-forward svc/kube-prometheus-stack-alertmanager -n monitoring 9093:9093 --address 0.0.0.0 >/dev/null 2>&1 &
 
 sleep 2
 
@@ -53,6 +54,9 @@ echo -e "     Tài khoản: ${BLUE}admin${NC} | Mật khẩu: ${BLUE}${ARGOCD_PA
 echo ""
 echo -e "  ${BOLD}4. Prometheus UI (Alerts):${NC}"
 echo -e "     http://${PUBLIC_IP}:9090"
+echo ""
+echo -e "  ${BOLD}5. AlertManager UI:${NC}"
+echo -e "     http://${PUBLIC_IP}:9093"
 echo ""
 echo -e "${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo -e "Để dừng tất cả các port-forward ngầm này, hãy chạy lệnh: ${YELLOW}killall kubectl${NC}"
