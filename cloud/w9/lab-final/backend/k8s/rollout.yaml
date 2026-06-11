@@ -43,9 +43,9 @@ spec:
               containerPort: 8080
           env:
             - name: ERROR_RATE
-              value: "0.5"          # Lỗi 50%
+              value: "0.0"          # Đổi sang "0.0" để làm bản stable healthy
             - name: VERSION
-              value: "v3"           # Phiên bản v3 lỗi
+              value: "v2"         # Đổi sang "v2" để làm bản stable healthy
             - name: DB_HOST
               valueFrom:
                 secretKeyRef:
