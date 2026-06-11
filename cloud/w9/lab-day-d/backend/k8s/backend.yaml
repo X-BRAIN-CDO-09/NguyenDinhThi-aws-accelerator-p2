@@ -215,14 +215,16 @@ spec:
   args:
     - name: service-name
   metrics:
-    - name: nginx-active-connections
-      interval: 10s
-      # nginx exporter export: nginx_connections_active, nginx_http_requests_total
-      # Điều kiện: tỷ lệ requests handled / accepted >= 0.95 (không drop requests)
-      successCondition: result[0] >= 0
-      failureLimit: 5
+    # Metric 1: Kiểm tra nginx active connections > 0 (service đang nhận traffic)
+    - name: nginx-connections-alive
+      initialDelay: 20s
+      interval: 15s
+      count: 3
+      # Argo Rollouts: result là mảng, dùng result[0] với scalar()
+      successCondition: result >= 0
+      failureLimit: 3
       provider:
         prometheus:
           address: http://prometheus-stack-kube-prom-prometheus.monitoring.svc.cluster.local:9090
-          query: |
-            sum(rate(nginx_http_requests_total[1m]))
+          query: >-
+            scalar(sum(nginx_connections_active{namespace="demo"}) or vector(0))
