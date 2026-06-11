@@ -1,0 +1,29 @@
+name: GitOps Manifests Validation
+
+on:
+  pull_request:
+    paths:
+      - 'cloud/w9/lab-day-d/k8s/**'
+  push:
+    branches:
+      - main
+    paths:
+      - 'cloud/w9/lab-day-d/k8s/**'
+
+jobs:
+  validate:
+    name: Validate Manifests Schema
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install kubeconform
+        run: |
+          curl -sSLo kc.tgz https://github.com/yannh/kubeconform/releases/download/v0.6.7/kubeconform-linux-amd64.tar.gz
+          tar -xzf kc.tgz
+          sudo mv kubeconform /usr/local/bin/
+
+      - name: Run Schema Validation
+        run: |
+          kubeconform -strict -summary cloud/w9/lab-day-d/k8s/
