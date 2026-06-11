@@ -4,6 +4,7 @@ metadata:
   name: web
   namespace: argocd
 spec:
+  project: default
   source:
     repoURL: 'https://github.com/X-BRAIN-CDO-09/NguyenDinhThi-aws-accelerator-p2.git'
     targetRevision: HEAD
