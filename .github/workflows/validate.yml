@@ -3,20 +3,29 @@ name: GitOps Manifests Validation
 on:
   pull_request:
     paths:
-      - 'cloud/w9/lab-day-d/infra/**'
-      - 'cloud/w9/lab-day-d/frontend/k8s/**'
-      - 'cloud/w9/lab-day-d/backend/k8s/**'
+      - 'cloud/w9/lab-final/backend/k8s/**'
+      - 'cloud/w9/lab-final/frontend/k8s/**'
+      - 'cloud/w9/lab-final/infra/k8s/**'
+      - 'cloud/w9/lab-final/argocd/**'
+      - 'cloud/w9/lab-final/app/**'
   push:
     branches:
       - main
     paths:
-      - 'cloud/w9/lab-day-d/infra/**'
-      - 'cloud/w9/lab-day-d/frontend/k8s/**'
-      - 'cloud/w9/lab-day-d/backend/k8s/**'
+      - 'cloud/w9/lab-final/backend/k8s/**'
+      - 'cloud/w9/lab-final/frontend/k8s/**'
+      - 'cloud/w9/lab-final/infra/k8s/**'
+      - 'cloud/w9/lab-final/argocd/**'
+      - 'cloud/w9/lab-final/app/**'
+
+# Concurrency: hủy run cũ nếu có PR mới
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   validate:
-    name: Validate Manifests Schema
+    name: Validate K8s Manifests (kubeconform)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -25,11 +34,40 @@ jobs:
       - name: Install kubeconform
         run: |
           curl -sSLo kc.tgz https://github.com/yannh/kubeconform/releases/download/v0.6.7/kubeconform-linux-amd64.tar.gz
-          tar -xzf kc.tgz
-          sudo mv kubeconform /usr/local/bin/
+          tar -xzf kc.tgz && sudo mv kubeconform /usr/local/bin/
+          kubeconform -v
 
-      - name: Run Schema Validation
+      - name: Validate backend manifests
+        working-directory: cloud/w9/lab-final
         run: |
-          kubeconform -strict -ignore-missing-schemas -summary cloud/w9/lab-day-d/infra/
-          kubeconform -strict -ignore-missing-schemas -summary cloud/w9/lab-day-d/frontend/k8s/
-          kubeconform -strict -ignore-missing-schemas -summary cloud/w9/lab-day-d/backend/k8s/
+          kubeconform -strict -summary \
+            -skip Rollout,AnalysisTemplate,ServiceMonitor,PrometheusRule \
+            backend/k8s/
+
+      - name: Validate frontend manifests
+        working-directory: cloud/w9/lab-final
+        run: |
+          kubeconform -strict -summary frontend/k8s/
+
+      - name: Validate infra manifests
+        working-directory: cloud/w9/lab-final
+        run: |
+          # -skip Secret: alertmanager-config.yaml dùng Secret với stringData (alertmanager format)
+          kubeconform -strict -summary \
+            -skip PrometheusRule,ServiceMonitor,OpenTelemetryCollector \
+            infra/k8s/
+
+      - name: Validate ArgoCD apps
+        working-directory: cloud/w9/lab-final
+        run: |
+          kubeconform -strict -summary \
+            -skip Application \
+            argocd/apps/
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "  ✅ kubeconform validation complete"
+          echo "  Checked: backend/, frontend/, infra/, argocd/apps/"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
