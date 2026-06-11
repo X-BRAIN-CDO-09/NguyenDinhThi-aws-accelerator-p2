@@ -1,0 +1,123 @@
+# ============================================================
+# Gap 7: Rollout variant dành cho Lab 4 — Manual Promote
+#
+# Khác với rollout.yaml (auto pause 30s):
+#   - pause: {}  → dừng VÔ HẠN, chờ người approve tay
+#   - Toàn bộ bước canary đều cần approve thủ công
+#
+# Cách dùng Lab 4:
+#   1. Sao chép nội dung này đè vào backend/k8s/rollout.yaml
+#   2. git commit + push → ArgoCD sync → rollout bắt đầu
+#   3. Canary sẽ dừng ở 20% và đợi vô hạn
+#   4. kubectl argo rollouts get rollout backend -n demo --watch
+#   5. Sau khi verify OK: kubectl argo rollouts promote backend -n demo
+#   6. Promote thủ công bước tiếp theo
+#
+# Hoặc: Đổi lại sang rollout.yaml auto nếu muốn trở lại Lab 3
+# ============================================================
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: backend
+  namespace: demo
+  labels:
+    app: backend
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+    lab: "lab4-manual-promote"
+spec:
+  replicas: 4
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+        - name: api
+          image: w9-api:1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: ERROR_RATE
+              value: "0"          # Lab 4: giữ 0 để test happy path
+            - name: VERSION
+              value: "v4-manual"  # Version rõ ràng để phân biệt
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secret
+                  key: DB_HOST
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secret
+                  key: DB_PASSWORD
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "200m"
+              memory: "128Mi"
+  strategy:
+    canary:
+      canaryService: backend-preview-service
+      stableService: backend-service
+      # AnalysisTemplate vẫn chạy ngầm để đo quality
+      # Nhưng manual gate quyết định proceed hay không
+      analysis:
+        templates:
+          - templateName: success-rate-analysis
+        startingStep: 1
+        args:
+          - name: namespace
+            value: demo
+      steps:
+        # ── Bước 1: 20% → DỪNG VÔ HẠN ──────────────────────
+        - setWeight: 20
+        - pause: {}   # ⭐ Không có duration → chờ: kubectl argo rollouts promote backend -n demo
+
+        # ── Bước 2: 50% → DỪNG VÔ HẠN ──────────────────────
+        - setWeight: 50
+        - pause: {}   # ⭐ Approve lần 2
+
+        # ── Bước 3: 100% → PROMOTED ─────────────────────────
+        - setWeight: 100
+
+# ============================================================
+# Hướng dẫn Lab 4 — Manual Promote Workflow:
+#
+# [Terminal 1] Watch rollout:
+#   kubectl argo rollouts get rollout backend -n demo --watch
+#
+# [Terminal 2] Approve:
+#   kubectl argo rollouts promote backend -n demo
+#
+# Sequence:
+#   Status: CanaryPaused (20%) ──promote──► CanaryPaused (50%) ──promote──► Healthy (100%)
+#
+# Nếu muốn ABORT tại bất kỳ bước nào:
+#   kubectl argo rollouts abort backend -n demo
+#
+# Xem Analysis đang chạy:
+#   kubectl get analysisrun -n demo
+#   kubectl describe analysisrun <name> -n demo
+# ============================================================

@@ -1,0 +1,157 @@
+name: ci-build-validate
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'cloud/w9/lab-final/app/**'
+      - 'cloud/w9/lab-final/backend/k8s/**'
+      - 'cloud/w9/lab-final/frontend/k8s/**'
+      - 'cloud/w9/lab-final/infra/k8s/**'
+      - 'cloud/w9/lab-final/argocd/**'
+  push:
+    branches: [main]
+    paths:
+      - 'cloud/w9/lab-final/app/**'
+
+# Concurrency: hủy run cũ nếu có PR mới cho cùng branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ── Job 1: Validate K8s manifests ──────────────────────────
+  validate-manifests:
+    name: Validate K8s Manifests (kubeconform)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install kubeconform
+        run: |
+          curl -sSLo kc.tgz https://github.com/yannh/kubeconform/releases/download/v0.6.7/kubeconform-linux-amd64.tar.gz
+          tar -xzf kc.tgz && sudo mv kubeconform /usr/local/bin/
+          kubeconform -v
+
+      - name: Validate backend manifests
+        working-directory: cloud/w9/lab-final
+        run: |
+          kubeconform -strict -summary \
+            -skip Rollout,AnalysisTemplate,ServiceMonitor,PrometheusRule \
+            backend/k8s/
+
+      - name: Validate frontend manifests
+        working-directory: cloud/w9/lab-final
+        run: |
+          kubeconform -strict -summary frontend/k8s/
+
+      - name: Validate infra manifests
+        working-directory: cloud/w9/lab-final
+        run: |
+          kubeconform -strict -summary \
+            -skip PrometheusRule,ServiceMonitor,OpenTelemetryCollector \
+            infra/k8s/
+
+      - name: Validate ArgoCD applications
+        working-directory: cloud/w9/lab-final
+        run: |
+          kubeconform -strict -summary \
+            -skip Application \
+            argocd/apps/
+
+      - name: Summary
+        if: always()
+        run: echo "✅ All K8s manifests validated with kubeconform"
+
+  # ── Job 2: Build Docker image (verify Dockerfile valid) ────
+  # Gap 2: CI build — verify image builds correctly
+  # Không push lên registry (lab dùng minikube image load)
+  # Khi đưa lên production: thêm step push lên ECR/Docker Hub
+  build-verify:
+    name: Build & Verify Docker Image
+    runs-on: ubuntu-latest
+    needs: validate-manifests   # Phải validate YAML trước mới build
+    steps:
+      - uses: actions/checkout@v4
+
+      # Build image Flask (verify Dockerfile syntax + dependencies valid)
+      - name: Build Flask API image
+        working-directory: cloud/w9/lab-final
+        run: |
+          docker build -t w9-api:${{ github.sha }} app/
+          echo "✅ Image built: w9-api:${{ github.sha }}"
+
+      # Verify image có thể start (smoke test)
+      - name: Smoke test — container starts correctly
+        run: |
+          # Start container
+          docker run -d --name api-test \
+            -p 8080:8080 \
+            -e ERROR_RATE=0 \
+            -e VERSION=ci-test \
+            w9-api:${{ github.sha }}
+
+          # Đợi container ready
+          sleep 3
+
+          # Test /healthz endpoint
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/healthz)
+          if [ "$STATUS" = "200" ]; then
+            echo "✅ /healthz → 200 OK"
+          else
+            echo "❌ /healthz → $STATUS (expected 200)"
+            docker logs api-test
+            exit 1
+          fi
+
+          # Test /metrics endpoint có prometheus metrics
+          METRICS=$(curl -s http://localhost:8080/metrics | grep -c "flask_http" || true)
+          if [ "$METRICS" -gt 0 ]; then
+            echo "✅ /metrics → Flask metrics exposed ($METRICS metrics found)"
+          else
+            echo "❌ /metrics → No flask_http metrics found"
+            docker logs api-test
+            exit 1
+          fi
+
+          # Test / endpoint
+          curl -s http://localhost:8080/ | python3 -c "
+          import sys,json
+          data=json.load(sys.stdin)
+          assert data.get('ok')==True or data.get('version')=='ci-test', f'Unexpected response: {data}'
+          print('✅ / endpoint → OK')
+          "
+
+          docker stop api-test
+
+      # (Optional — Production) Push to Docker Hub / ECR
+      # Bỏ comment khi dùng registry thật:
+      #
+      # - name: Push to Docker Hub
+      #   if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      #   run: |
+      #     echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+      #     docker tag w9-api:${{ github.sha }} ${{ secrets.DOCKER_USERNAME }}/w9-api:${{ github.sha }}
+      #     docker tag w9-api:${{ github.sha }} ${{ secrets.DOCKER_USERNAME }}/w9-api:latest
+      #     docker push ${{ secrets.DOCKER_USERNAME }}/w9-api:${{ github.sha }}
+      #     docker push ${{ secrets.DOCKER_USERNAME }}/w9-api:latest
+      #     echo "✅ Pushed: ${{ secrets.DOCKER_USERNAME }}/w9-api:${{ github.sha }}"
+      #
+      # - name: Update rollout.yaml with new image tag
+      #   if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      #   run: |
+      #     sed -i "s|image: w9-api:.*|image: ${{ secrets.DOCKER_USERNAME }}/w9-api:${{ github.sha }}|g" \
+      #       cloud/w9/lab-final/backend/k8s/rollout.yaml
+      #     git config user.name "github-actions[bot]"
+      #     git config user.email "github-actions[bot]@users.noreply.github.com"
+      #     git add cloud/w9/lab-final/backend/k8s/rollout.yaml
+      #     git commit -m "ci: update backend image to ${{ github.sha }}" || true
+      #     git push
+
+      - name: Build Summary
+        if: always()
+        run: |
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "  Build: w9-api:${{ github.sha }}"
+          echo "  Smoke test: /healthz, /metrics, /"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
