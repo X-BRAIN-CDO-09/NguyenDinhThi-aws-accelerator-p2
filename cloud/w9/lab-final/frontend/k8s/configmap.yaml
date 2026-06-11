@@ -472,15 +472,15 @@ data:
             <div style="margin-top:16px;">
               <div class="card-title" style="margin-bottom:10px;"><span>🎮</span> Commands</div>
               <div class="code-block">
-<span class="cmt"># Trigger canary (change VERSION v1→v2)</span>
-<span class="kw">kubectl</span> argo rollouts get rollout backend \
-  -n demo --watch
+                <span class="cmt"># Trigger canary (change VERSION v1→v2)</span>
+                <span class="kw">kubectl</span> argo rollouts get rollout backend \
+                  -n demo --watch
 
-<span class="cmt"># Promote (nếu dùng pause: {} )</span>
-<span class="kw">kubectl</span> argo rollouts promote backend -n demo
+                <span class="cmt"># Promote (nếu dùng pause: {} )</span>
+                <span class="kw">kubectl</span> argo rollouts promote backend -n demo
 
-<span class="cmt"># Force abort</span>
-<span class="kw">kubectl</span> argo rollouts abort backend -n demo
+                <span class="cmt"># Force abort</span>
+                <span class="kw">kubectl</span> argo rollouts abort backend -n demo
               </div>
             </div>
           </div>
@@ -511,13 +511,13 @@ data:
             </table>
             <div style="margin-top:14px;">
               <div class="code-block">
-<span class="cmt"># SLO: 99.5% availability / 30 ngày</span>
-Error budget = 0.5% × 43200 min
-             = <span class="kw">216 phút/tháng</span>
+                <span class="cmt"># SLO: 99.5% availability / 30 ngày</span>
+                Error budget = 0.5% × 43200 min
+                             = <span class="kw">216 phút/tháng</span>
 
-<span class="cmt"># Inject error để test alert:</span>
-<span class="str">ERROR_RATE=0.2</span> → 20% lỗi
-<span class="kw">→</span> Burn rate ~14.4× → alert fires!
+                <span class="cmt"># Inject error để test alert:</span>
+                <span class="str">ERROR_RATE=0.2</span> → 20% lỗi
+                <span class="kw">→</span> Burn rate ~14.4× → alert fires!
               </div>
             </div>
           </div>
