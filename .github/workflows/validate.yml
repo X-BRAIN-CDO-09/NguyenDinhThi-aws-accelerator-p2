@@ -3,12 +3,16 @@ name: GitOps Manifests Validation
 on:
   pull_request:
     paths:
-      - 'cloud/w9/lab-day-d/k8s/**'
+      - 'cloud/w9/lab-day-d/infra/**'
+      - 'cloud/w9/lab-day-d/frontend/k8s/**'
+      - 'cloud/w9/lab-day-d/backend/k8s/**'
   push:
     branches:
       - main
     paths:
-      - 'cloud/w9/lab-day-d/k8s/**'
+      - 'cloud/w9/lab-day-d/infra/**'
+      - 'cloud/w9/lab-day-d/frontend/k8s/**'
+      - 'cloud/w9/lab-day-d/backend/k8s/**'
 
 jobs:
   validate:
@@ -26,4 +30,6 @@ jobs:
 
       - name: Run Schema Validation
         run: |
-          kubeconform -strict -summary cloud/w9/lab-day-d/k8s/
+          kubeconform -strict -summary cloud/w9/lab-day-d/infra/
+          kubeconform -strict -summary cloud/w9/lab-day-d/frontend/k8s/
+          kubeconform -strict -summary cloud/w9/lab-day-d/backend/k8s/

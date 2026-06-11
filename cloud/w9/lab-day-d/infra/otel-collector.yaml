@@ -21,10 +21,10 @@ data:
               scrape_interval: 15s
               static_configs:
                 - targets: ['0.0.0.0:8888']
-            - job_name: 'web-app'
+            - job_name: 'backend-app'
               scrape_interval: 5s
               static_configs:
-                - targets: ['web-service.demo.svc.cluster.local:80']
+                - targets: ['backend-service.demo.svc.cluster.local:80']
 
     processors:
       batch:

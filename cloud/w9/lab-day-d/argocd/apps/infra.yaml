@@ -1,14 +1,14 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: web
+  name: infra
   namespace: argocd
 spec:
   project: default
   source:
     repoURL: 'https://github.com/X-BRAIN-CDO-09/NguyenDinhThi-aws-accelerator-p2.git'
     targetRevision: HEAD
-    path: cloud/w9/lab-day-d/k8s
+    path: cloud/w9/lab-day-d/infra
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: demo
