@@ -89,7 +89,7 @@ spec:
             value: demo
       steps:
         - setWeight: 20
-        - pause: {duration: 30s}   # Lab 4: đổi thành pause: {} để promote tay
+        - pause: {duration: 5m}   # Tăng lên 5m để analysis run có thời gian fail 2 lần và tự abort
         - setWeight: 50
         - pause: {duration: 30s}
         - setWeight: 100
