@@ -13,6 +13,31 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "2"
 data:
+  default.conf: |
+    server {
+        listen 80;
+        server_name localhost;
+
+        location / {
+            root /usr/share/nginx/html;
+            index index.html index.htm;
+        }
+
+        location /api/status {
+            proxy_pass http://backend-service:80/api/status;
+            proxy_set_header Host $host;
+        }
+
+        location /api/prometheus/ {
+            proxy_pass http://kube-prometheus-stack-prometheus.monitoring.svc.cluster.local:9090/;
+            proxy_set_header Host $host;
+        }
+
+        location /api/grafana/ {
+            proxy_pass http://kube-prometheus-stack-grafana.monitoring.svc.cluster.local:80/;
+            proxy_set_header Host $host;
+        }
+    }
   index.html: |
     <!DOCTYPE html>
     <html lang="vi" data-theme="dark">
@@ -589,37 +614,96 @@ data:
           const dot = document.getElementById('refreshDot');
           dot.style.background = 'var(--accent)';
 
+          // 1. Check Backend Status
           try {
             const res = await fetch('/api/status', { signal: AbortSignal.timeout(3000) });
             if (res.ok) {
               const data = await res.json();
-              updateUI(data);
               document.getElementById('backendStatus').textContent = 'Healthy';
               document.getElementById('backendStatus').className = 'service-badge badge-healthy';
+              document.getElementById('statVersion').textContent = data.version || 'v1';
               dot.style.background = 'var(--success)';
+            } else {
+              throw new Error('Not OK');
             }
           } catch (e) {
-            document.getElementById('backendStatus').textContent = 'Checking...';
-            document.getElementById('backendStatus').className = 'service-badge badge-unknown';
+            document.getElementById('backendStatus').textContent = 'Degraded';
+            document.getElementById('backendStatus').className = 'service-badge badge-degraded';
             dot.style.background = 'var(--danger)';
-            // Use mock data when backend not reachable
-            updateUI({ version: 'v1', error_rate: 0, status: 'healthy' });
           }
 
-          document.getElementById('lastUpdate').textContent =
-            new Date().toLocaleTimeString('vi-VN');
-        }
+          // 2. Check Prometheus Status & Real Metrics
+          try {
+            const promRes = await fetch('/api/prometheus/api/v1/query?query=up', { signal: AbortSignal.timeout(3000) });
+            if (promRes.ok) {
+              document.getElementById('prometheusStatus').textContent = 'Healthy';
+              document.getElementById('prometheusStatus').className = 'service-badge badge-healthy';
 
-        function updateUI(data) {
-          document.getElementById('statVersion').textContent = data.version || 'v1';
-          const errPct = ((data.error_rate || 0) * 100).toFixed(1);
-          document.getElementById('statError').textContent = errPct + '%';
+              // Fetch Real Error Rate (Last 5m)
+              const errQuery = 'sum(rate(flask_http_request_total{status=~"5..",namespace="demo"}[5m]))/sum(rate(flask_http_request_total{namespace="demo"}[5m]))*100';
+              const errRes = await fetch(`/api/prometheus/api/v1/query?query=${encodeURIComponent(errQuery)}`);
+              let errRate = 0;
+              if (errRes.ok) {
+                const errData = await errRes.json();
+                if (errData.data && errData.data.result && errData.data.result.length > 0) {
+                  errRate = parseFloat(errData.data.result[0].value[1]);
+                }
+              }
+              document.getElementById('statError').textContent = errRate.toFixed(1) + '%';
+              const sli = (100 - errRate).toFixed(2);
+              document.getElementById('statSLI').textContent = sli + '%';
+              document.getElementById('statBudget').textContent = sli >= 99.5 ? '100%' : Math.max(0, ((sli - 99.0) / 0.5 * 100)).toFixed(0) + '%';
 
-          // SLI mock (would come from Prometheus in real setup)
-          const sli = (100 - parseFloat(errPct)).toFixed(2);
-          document.getElementById('statSLI').textContent = sli + '%';
-          document.getElementById('statBudget').textContent =
-            parseFloat(sli) >= 99.5 ? '100%' : Math.max(0, ((parseFloat(sli) - 99.0) / 0.5 * 100)).toFixed(0) + '%';
+              // Fetch Real Canary Traffic % (v2 vs total)
+              const canaryQuery = 'sum(rate(flask_http_request_total{version="v2",namespace="demo"}[2m]))/sum(rate(flask_http_request_total{namespace="demo"}[2m]))*100';
+              const canaryRes = await fetch(`/api/prometheus/api/v1/query?query=${encodeURIComponent(canaryQuery)}`);
+              let canaryPct = 0;
+              if (canaryRes.ok) {
+                const canaryData = await canaryRes.json();
+                if (canaryData.data && canaryData.data.result && canaryData.data.result.length > 0) {
+                  canaryPct = parseFloat(canaryData.data.result[0].value[1]);
+                }
+              }
+              if (canaryPct > 0) {
+                document.getElementById('statCanary').textContent = canaryPct.toFixed(0) + '%';
+                document.getElementById('statCanarySub').textContent = 'canary active';
+                document.getElementById('canaryProgress').style.display = 'block';
+                document.getElementById('canaryPct').textContent = canaryPct.toFixed(0) + '%';
+                document.getElementById('canaryBar').style.width = canaryPct.toFixed(0) + '%';
+              } else {
+                document.getElementById('statCanary').textContent = '0%';
+                document.getElementById('statCanarySub').textContent = 'no rollout active';
+                document.getElementById('canaryProgress').style.display = 'none';
+              }
+            } else {
+              throw new Error('Prometheus not OK');
+            }
+          } catch (e) {
+            document.getElementById('prometheusStatus').textContent = 'Offline';
+            document.getElementById('prometheusStatus').className = 'service-badge badge-degraded';
+            document.getElementById('statError').textContent = '—';
+            document.getElementById('statSLI').textContent = '—';
+            document.getElementById('statBudget').textContent = '—';
+            document.getElementById('statCanary').textContent = '0%';
+            document.getElementById('statCanarySub').textContent = 'no rollout active';
+            document.getElementById('canaryProgress').style.display = 'none';
+          }
+
+          // 3. Check Grafana Status
+          try {
+            const grafRes = await fetch('/api/grafana/api/health', { signal: AbortSignal.timeout(3000) });
+            if (grafRes.ok) {
+              document.getElementById('grafanaStatus').textContent = 'Healthy';
+              document.getElementById('grafanaStatus').className = 'service-badge badge-healthy';
+            } else {
+              throw new Error('Grafana not OK');
+            }
+          } catch (e) {
+            document.getElementById('grafanaStatus').textContent = 'Offline';
+            document.getElementById('grafanaStatus').className = 'service-badge badge-degraded';
+          }
+
+          document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString('vi-VN');
         }
 
         // Auto-refresh every 10 seconds
