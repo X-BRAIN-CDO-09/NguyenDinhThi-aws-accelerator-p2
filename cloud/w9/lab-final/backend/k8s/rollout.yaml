@@ -1,20 +1,27 @@
-# ============================================================
-# Gap 7: Rollout variant dành cho Lab 4 — Manual Promote
+# ==============================================================================
+# FILE: backend/k8s/rollout.yaml
+# Argo Rollout — Backend Canary Deployment
 #
-# Khác với rollout.yaml (auto pause 30s):
-#   - pause: {}  → dừng VÔ HẠN, chờ người approve tay
-#   - Toàn bộ bước canary đều cần approve thủ công
-#
-# Cách dùng Lab 4:
-#   1. Sao chép nội dung này đè vào backend/k8s/rollout.yaml
-#   2. git commit + push → ArgoCD sync → rollout bắt đầu
-#   3. Canary sẽ dừng ở 20% và đợi vô hạn
-#   4. kubectl argo rollouts get rollout backend -n demo --watch
-#   5. Sau khi verify OK: kubectl argo rollouts promote backend -n demo
-#   6. Promote thủ công bước tiếp theo
-#
-# Hoặc: Đổi lại sang rollout.yaml auto nếu muốn trở lại Lab 3
-# ============================================================
+# ┌─────────────────────────────────────────────────────────────────────────┐
+# │  HƯỚNG DẪN CHỌN CHẾ ĐỘ — Chỉ cần mở/đóng comment phần tương ứng      │
+# │                                                                         │
+# │  [CASE A] Lab 3 — Auto Canary (Happy Path, v2 lành mạnh)               │
+# │           ERROR_RATE=0 | VERSION=v2 | steps: pause 30s auto            │
+# │                                                                         │
+# │  [CASE B] Lab 3 — Auto-Abort Canary (Challenge, v3 lỗi 20%)            │
+# │           ERROR_RATE=0.2 | VERSION=v3 | steps: pause 5m (đủ để fail)   │
+# │                                                                         │
+# │  [CASE C] Lab 4 — Manual Promote (SS-28, SS-29)                        │
+# │           ERROR_RATE=0 | VERSION=v4-manual | steps: pause: {} vô hạn   │
+# │                                                                         │
+# │  [CASE D] Lab 5 — Git Revert Rollback (SS-33, SS-34)                   │
+# │           ERROR_RATE=0 | VERSION=v2 | steps: pause 30s (giống Case A)  │
+# │                                                                         │
+# │  SAU KHI ĐỔI: git add . && git commit -m "switch to case X"            │
+# │               git push → ArgoCD tự sync trong ~30s                     │
+# └─────────────────────────────────────────────────────────────────────────┘
+# ==============================================================================
+
 apiVersion: argoproj.io/v1alpha1
 kind: Rollout
 metadata:
@@ -24,10 +31,16 @@ metadata:
     app: backend
   annotations:
     argocd.argoproj.io/sync-wave: "1"
-    lab: "lab4-manual-promote"
+
+    # ── Đổi label này theo case đang dùng để dễ track ──
+    #lab: "lab3-auto-canary"          # CASE A
+    #lab: "lab3-auto-abort-challenge" # CASE B
+    lab: "lab4-manual-promote"        # CASE C  ← ĐANG DÙNG
+    #lab: "lab5-git-revert"           # CASE D
+
 spec:
   replicas: 4
-  revisionHistoryLimit: 3
+  revisionHistoryLimit: 5   # Giữ 5 để thấy đủ history cho SS-36
   selector:
     matchLabels:
       app: backend
@@ -38,16 +51,47 @@ spec:
     spec:
       containers:
         - name: api
-          image: w9-api:1
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
               containerPort: 8080
+
+          # ════════════════════════════════════════════════════════════════
+          # IMAGE — Chọn image theo case
+          # ════════════════════════════════════════════════════════════════
+          #image: w9-api:1   # Baseline stable (v1)
+          #image: w9-api:2   # CASE A, CASE D — Happy path promote
+          #image: w9-api:3   # CASE B — Challenge: canary có lỗi (ERROR_RATE=0.2)
+          image: w9-api:2    # CASE C — Lab 4: image bình thường, test manual gate
+
           env:
+            # ──────────────────────────────────────────────────────────────
+            # ERROR_RATE — Tỉ lệ lỗi 5xx của API
+            #   "0"   → Healthy, AnalysisRun PASS  (CASE A, C, D)
+            #   "0.1" → 10% lỗi, vẫn dưới threshold 5% SLO    (thử nghiệm)
+            #   "0.2" → 20% lỗi, AnalysisRun FAIL → Auto-Abort (CASE B)
+            #   "0.5" → 50% lỗi, Prometheus alerts FIRING nhanh
+            # ──────────────────────────────────────────────────────────────
             - name: ERROR_RATE
-              value: "0.5"          # Đổi sang "0.5" để làm bản stable healthy
+              #value: "0"    # CASE A, C, D — Happy path
+              value: "0"     # CASE C (Lab 4 Manual) ← ĐANG DÙNG
+              #value: "0.2"  # CASE B — Challenge auto-abort (SS-22 → SS-25)
+              #value: "0.5"  # Kích Prometheus alerts firing nhanh (SS-26, SS-27)
+
+            # ──────────────────────────────────────────────────────────────
+            # VERSION — Hiển thị trong /api/status response
+            #   Dùng để verify đúng canary đang chạy sau promote/rollback
+            # ──────────────────────────────────────────────────────────────
             - name: VERSION
-              value: "v3"           # Đổi sang "v3" để làm bản stable healthy lỗi
+              #value: "v1"         # Baseline
+              #value: "v2"         # CASE A — Auto canary happy path (SS-20, SS-21)
+              #value: "v3"         # CASE B — Challenge canary có lỗi (SS-22 → SS-25)
+              value: "v4-manual"   # CASE C — Lab 4 manual promote (SS-28, SS-29) ← ĐANG DÙNG
+              #value: "v2"         # CASE D — Sau git revert, trở về v2 (SS-34)
+
+            # ──────────────────────────────────────────────────────────────
+            # DB credentials — Không đổi, lấy từ Secret
+            # ──────────────────────────────────────────────────────────────
             - name: DB_HOST
               valueFrom:
                 secretKeyRef:
@@ -58,6 +102,7 @@ spec:
                 secretKeyRef:
                   name: backend-secret
                   key: DB_PASSWORD
+
           readinessProbe:
             httpGet:
               path: /healthz
@@ -77,10 +122,16 @@ spec:
             limits:
               cpu: "200m"
               memory: "128Mi"
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # STRATEGY — Canary Steps
+  # ══════════════════════════════════════════════════════════════════════════
   strategy:
     canary:
       canaryService: backend-preview-service
       stableService: backend-service
+
+      # AnalysisTemplate chạy từ step 1 trở đi để đo success-rate + latency
       analysis:
         templates:
           - templateName: success-rate-analysis
@@ -88,29 +139,101 @@ spec:
         args:
           - name: namespace
             value: demo
+
       steps:
+        # ════════════════════════════════════════════════════════════════
+        # CASE C — Lab 4: MANUAL PROMOTE (SS-28, SS-29)   ← ĐANG DÙNG
+        #
+        # Workflow:
+        #   1. Canary lên 20% → DỪNG VÔ HẠN → chụp SS-28
+        #   2. kubectl argo rollouts promote backend -n demo → chụp SS-29
+        #   3. Canary lên 50% → DỪNG VÔ HẠN
+        #   4. kubectl argo rollouts promote backend -n demo (lần 2)
+        #   5. Canary lên 100% → Healthy ✔
+        # ════════════════════════════════════════════════════════════════
         - setWeight: 20
-        - pause: {duration: 5m}   # Tăng lên 5m để analysis run có thời gian fail 2 lần và tự abort
+        - pause: {}        # ⭐ VÔ HẠN — chờ: kubectl argo rollouts promote backend -n demo
         - setWeight: 50
-        - pause: {duration: 30s}
+        - pause: {}        # ⭐ VÔ HẠN — approve lần 2
         - setWeight: 100
 
-# ============================================================
-# Hướng dẫn Lab 4 — Manual Promote Workflow:
+        # ════════════════════════════════════════════════════════════════
+        # CASE A — Lab 3: AUTO CANARY HAPPY PATH (SS-18 → SS-21)
+        #
+        # Workflow: 20% → đợi 30s → 50% → đợi 30s → 100% Healthy
+        # AnalysisRun: PASS (ERROR_RATE=0, success_rate=100%)
+        #
+        # Để dùng: comment CASE C ở trên, bỏ comment CASE A dưới đây
+        # ════════════════════════════════════════════════════════════════
+        #- setWeight: 20
+        #- pause: {duration: 30s}   # Auto sau 30s, không cần approve tay
+        #- setWeight: 50
+        #- pause: {duration: 30s}
+        #- setWeight: 100
+
+        # ════════════════════════════════════════════════════════════════
+        # CASE B — Lab 3: AUTO-ABORT CHALLENGE (SS-22 → SS-25)
+        #
+        # Workflow:
+        #   - Canary v3 ERROR_RATE=0.2 → 20% traffic
+        #   - Chờ 5 phút để AnalysisRun đủ thời gian fail 2 lần
+        #   - AnalysisRun FAIL → Rollout tự ABORT → rollback v2
+        #
+        # Đừng quên: đổi image: w9-api:3 và ERROR_RATE: "0.2" ở trên
+        # ════════════════════════════════════════════════════════════════
+        #- setWeight: 20
+        #- pause: {duration: 5m}    # Đủ thời gian để AnalysisRun fail 2 lần và tự abort
+        #- setWeight: 50
+        #- pause: {duration: 30s}
+        #- setWeight: 100
+
+        # ════════════════════════════════════════════════════════════════
+        # CASE D — Lab 5: GIT REVERT ROLLBACK (SS-33, SS-34)
+        #
+        # Workflow:
+        #   1. Đang ở state sau CASE B (v3 aborted, v2 stable)
+        #   2. git revert HEAD && git push
+        #   3. ArgoCD sync → rollout về v2 → chụp SS-34
+        #
+        # Steps giống CASE A vì đây là happy path deploy lại v2
+        # ════════════════════════════════════════════════════════════════
+        #- setWeight: 20
+        #- pause: {duration: 30s}
+        #- setWeight: 50
+        #- pause: {duration: 30s}
+        #- setWeight: 100
+
+# ==============================================================================
+# QUICK REFERENCE — Lệnh hay dùng
+# ==============================================================================
 #
-# [Terminal 1] Watch rollout:
+# ── Xem trạng thái rollout (realtime): ─────────────────────────────────────
 #   kubectl argo rollouts get rollout backend -n demo --watch
 #
-# [Terminal 2] Approve:
+# ── Approve / Promote thủ công (CASE C): ───────────────────────────────────
 #   kubectl argo rollouts promote backend -n demo
 #
-# Sequence:
-#   Status: CanaryPaused (20%) ──promote──► CanaryPaused (50%) ──promote──► Healthy (100%)
-#
-# Nếu muốn ABORT tại bất kỳ bước nào:
+# ── Abort rollout tại bất kỳ bước nào: ─────────────────────────────────────
 #   kubectl argo rollouts abort backend -n demo
+#   kubectl argo rollouts undo backend -n demo   # nếu cần undo về revision trước
 #
-# Xem Analysis đang chạy:
+# ── Xem lịch sử revisions (SS-36): ─────────────────────────────────────────
+#   kubectl argo rollouts history rollout backend -n demo
+#
+# ── Xem AnalysisRun đang chạy: ─────────────────────────────────────────────
 #   kubectl get analysisrun -n demo
-#   kubectl describe analysisrun <name> -n demo
-# ============================================================
+#   kubectl describe analysisrun $(kubectl get analysisrun -n demo -o name | head -1) -n demo
+#
+# ── Xem metric AnalysisRun (SS-23): ─────────────────────────────────────────
+#   kubectl describe analysisrun \
+#     $(kubectl get analysisrun -n demo -o name | head -1) -n demo \
+#     | grep -A 15 "Metric Results"
+#
+# ── Apply trực tiếp không qua ArgoCD (debug): ───────────────────────────────
+#   kubectl apply -f backend/k8s/rollout.yaml
+#
+# ── Verify version đang serve (SS-21, SS-25, SS-34): ────────────────────────
+#   MINIKUBE_IP=$(minikube ip -p w9)
+#   curl http://$MINIKUBE_IP:30080/api/status | python3 -m json.tool
+#
+# ==============================================================================
