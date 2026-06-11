@@ -13,19 +13,19 @@ export const options = {
 };
 
 export default function () {
-  // Read target URL from environment or fallback to localhost NodePort
-  const url = __ENV.TARGET_URL || 'http://localhost:30080';
-  
-  // 85% of requests go to healthy root page
-  // 15% of requests go to non-existent path to trigger 404 errors (triggers SLO burn & Canary rollback)
+  // Nhắm tới Backend NodePort (active service)
+  const baseUrl = __ENV.TARGET_URL || 'http://localhost:30080';
+
+  // 85% request hợp lệ -> trả về 200 OK
+  // 15% request sai -> trigger SLO burn & Canary rollback
   const isErrorRequest = Math.random() < 0.15;
-  const path = isErrorRequest ? '/invalid-page-to-trigger-rollback' : '/';
-  
-  const res = http.get(`${url}${path}`);
-  
+  const path = isErrorRequest ? '/invalid-path-to-trigger-rollback' : '/api.json';
+
+  const res = http.get(`${baseUrl}${path}`);
+
   check(res, {
-    'status is 200': (r) => r.status === 200,
+    'status is 2xx': (r) => r.status >= 200 && r.status < 300,
   });
-  
+
   sleep(0.1); // 100ms pause between requests
 }

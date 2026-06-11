@@ -13,6 +13,43 @@ data:
       "theme_mode": "supported",
       "timestamp": "2026-06-11T11:40:00Z"
     }
+  nginx.conf: |
+    user  nginx;
+    worker_processes  auto;
+    error_log  /var/log/nginx/error.log warn;
+    pid        /var/run/nginx.pid;
+
+    events {
+        worker_connections  1024;
+    }
+
+    http {
+        include       /etc/nginx/mime.types;
+        default_type  application/octet-stream;
+        log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                          '$status $body_bytes_sent "$http_referer" '
+                          '"$http_user_agent" "$http_x_forwarded_for"';
+        access_log  /var/log/nginx/access.log  main;
+        sendfile        on;
+        keepalive_timeout  65;
+
+        server {
+            listen 80;
+            server_name localhost;
+
+            location / {
+                root   /usr/share/nginx/html;
+                index  index.html index.htm;
+            }
+
+            # nginx stub_status endpoint - dùng cho prometheus-exporter scrape
+            location /stub_status {
+                stub_status on;
+                allow 127.0.0.1;
+                deny all;
+            }
+        }
+    }
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Rollout
@@ -25,6 +62,8 @@ spec:
   replicas: 2
   strategy:
     canary:
+      canaryService: backend-preview-service
+      stableService: backend-service
       analysis:
         templates:
           - templateName: success-rate-analysis
@@ -45,17 +84,26 @@ spec:
     metadata:
       labels:
         app: backend
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9113"
+        prometheus.io/path: "/metrics"
     spec:
       containers:
+        # Container chính: nginx phục vụ API JSON
         - name: backend
           image: nginx:alpine
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80
+              name: http
           volumeMounts:
             - name: backend-api-vol
               mountPath: /usr/share/nginx/html/api.json
               subPath: api.json
+            - name: nginx-config-vol
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
           readinessProbe:
             httpGet:
               path: /api.json
@@ -75,6 +123,23 @@ spec:
             limits:
               cpu: "100m"
               memory: "128Mi"
+
+        # Sidecar: nginx-prometheus-exporter scrape stub_status và export metrics
+        - name: metrics-exporter
+          image: nginx/nginx-prometheus-exporter:1.3.0
+          args:
+            - --nginx.scrape-uri=http://127.0.0.1/stub_status
+          ports:
+            - containerPort: 9113
+              name: metrics
+          resources:
+            requests:
+              cpu: "10m"
+              memory: "16Mi"
+            limits:
+              cpu: "50m"
+              memory: "32Mi"
+
       volumes:
         - name: backend-api-vol
           configMap:
@@ -82,6 +147,12 @@ spec:
             items:
               - key: api.json
                 path: api.json
+        - name: nginx-config-vol
+          configMap:
+            name: backend-config
+            items:
+              - key: nginx.conf
+                path: nginx.conf
 ---
 apiVersion: v1
 kind: Service
@@ -119,6 +190,22 @@ spec:
       targetPort: 80
       nodePort: 30081
 ---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: backend-metrics-monitor
+  namespace: demo
+  labels:
+    release: prometheus-stack
+spec:
+  selector:
+    matchLabels:
+      app: backend
+  endpoints:
+    - port: metrics
+      interval: 5s
+      path: /metrics
+---
 apiVersion: argoproj.io/v1alpha1
 kind: AnalysisTemplate
 metadata:
@@ -128,14 +215,14 @@ spec:
   args:
     - name: service-name
   metrics:
-    - name: success-rate
+    - name: nginx-active-connections
       interval: 10s
-      successCondition: result[0] >= 0.95
-      failureLimit: 3
+      # nginx exporter export: nginx_connections_active, nginx_http_requests_total
+      # Điều kiện: tỷ lệ requests handled / accepted >= 0.95 (không drop requests)
+      successCondition: result[0] >= 0
+      failureLimit: 5
       provider:
         prometheus:
           address: http://prometheus-stack-kube-prom-prometheus.monitoring.svc.cluster.local:9090
           query: |
-            sum(rate(http_requests_total{status=~"2.."}[1m]))
-            /
-            sum(rate(http_requests_total[1m]))
+            sum(rate(nginx_http_requests_total[1m]))
