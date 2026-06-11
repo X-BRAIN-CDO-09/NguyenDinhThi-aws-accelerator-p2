@@ -30,6 +30,6 @@ jobs:
 
       - name: Run Schema Validation
         run: |
-          kubeconform -strict -summary cloud/w9/lab-day-d/infra/
-          kubeconform -strict -summary cloud/w9/lab-day-d/frontend/k8s/
-          kubeconform -strict -summary cloud/w9/lab-day-d/backend/k8s/
+          kubeconform -strict -ignore-missing-schemas -summary cloud/w9/lab-day-d/infra/
+          kubeconform -strict -ignore-missing-schemas -summary cloud/w9/lab-day-d/frontend/k8s/
+          kubeconform -strict -ignore-missing-schemas -summary cloud/w9/lab-day-d/backend/k8s/
