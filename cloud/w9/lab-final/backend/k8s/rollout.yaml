@@ -43,9 +43,9 @@ spec:
               containerPort: 8080
           env:
             - name: ERROR_RATE
-              value: "0"          # Đổi sang "0.2" để test canary abort
+              value: "0.2"          # Đổi sang "0.2" để test canary abort
             - name: VERSION
-              value: "v1"         # Đổi sang "v2" để trigger canary
+              value: "v2"         # Đổi sang "v2" để trigger canary
             - name: DB_HOST
               valueFrom:
                 secretKeyRef:
