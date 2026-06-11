@@ -58,11 +58,11 @@ fi
 
 step "4. Cài đặt k6 (cho Load Test)"
 if ! command -v k6 &> /dev/null; then
-  log "Đang cài đặt k6..."
-  sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17DEC7E885FD
-  echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
-  sudo apt-get update -y
-  sudo apt-get install k6 -y
+  log "Đang tải và cài đặt k6 via deb package..."
+  curl -LO https://github.com/grafana/k6/releases/download/v0.51.0/k6-v0.51.0-linux-amd64.deb
+  sudo dpkg -i k6-v0.51.0-linux-amd64.deb
+  rm k6-v0.51.0-linux-amd64.deb
+  log "k6 đã cài đặt thành công."
 else
   log "k6 đã được cài đặt."
 fi
