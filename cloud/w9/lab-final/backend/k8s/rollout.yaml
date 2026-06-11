@@ -45,9 +45,9 @@ spec:
               containerPort: 8080
           env:
             - name: ERROR_RATE
-              value: "0"          # Lab 4: giữ 0 để test happy path
+              value: "0.0"          # Đổi sang "0.0" để làm bản stable healthy
             - name: VERSION
-              value: "v4-manual"  # Version rõ ràng để phân biệt
+              value: "v2"           # Đổi sang "v2" để làm bản stable healthy
             - name: DB_HOST
               valueFrom:
                 secretKeyRef:
@@ -81,8 +81,6 @@ spec:
     canary:
       canaryService: backend-preview-service
       stableService: backend-service
-      # AnalysisTemplate vẫn chạy ngầm để đo quality
-      # Nhưng manual gate quyết định proceed hay không
       analysis:
         templates:
           - templateName: success-rate-analysis
@@ -91,15 +89,10 @@ spec:
           - name: namespace
             value: demo
       steps:
-        # ── Bước 1: 20% → DỪNG VÔ HẠN ──────────────────────
         - setWeight: 20
-        - pause: {}   # ⭐ Không có duration → chờ: kubectl argo rollouts promote backend -n demo
-
-        # ── Bước 2: 50% → DỪNG VÔ HẠN ──────────────────────
+        - pause: {duration: 30s}
         - setWeight: 50
-        - pause: {}   # ⭐ Approve lần 2
-
-        # ── Bước 3: 100% → PROMOTED ─────────────────────────
+        - pause: {duration: 30s}
         - setWeight: 100
 
 # ============================================================
