@@ -1,10 +1,213 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: demo
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: web-html
+  namespace: demo
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html lang="vi" data-theme="dark">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Lab Day-D: Deliver Smartly Platform</title>
+      <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;800&display=swap');
+        
+        :root {
+          --bg-primary: #f8fafc;
+          --bg-secondary: #f1f5f9;
+          --bg-gradient: radial-gradient(circle at top right, #e0e7ff 0%, #f8fafc 70%);
+          --surface: rgba(255, 255, 255, 0.75);
+          --surface-border: rgba(0, 0, 0, 0.08);
+          --text-primary: #0f172a;
+          --text-secondary: #475569;
+          --accent: #6366f1;
+          --accent-hover: #4f46e5;
+          --success: #10b981;
+          --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+          --glass-blur: blur(16px);
+        }
+
+        [data-theme="dark"] {
+          --bg-primary: #0b0f19;
+          --bg-secondary: #111827;
+          --bg-gradient: radial-gradient(circle at top right, #1e1b4b 0%, #0b0f19 70%);
+          --surface: rgba(17, 24, 39, 0.7);
+          --surface-border: rgba(255, 255, 255, 0.08);
+          --text-primary: #f9fafb;
+          --text-secondary: #9ca3af;
+          --accent: #818cf8;
+          --accent-hover: #6366f1;
+          --success: #34d399;
+          --shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+        }
+
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+          transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+
+        body {
+          font-family: 'Inter', sans-serif;
+          background: var(--bg-primary);
+          background-image: var(--bg-gradient);
+          color: var(--text-primary);
+          min-height: 100vh;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 20px;
+        }
+
+        .card {
+          background: var(--surface);
+          backdrop-filter: var(--glass-blur);
+          border: 1px solid var(--surface-border);
+          border-radius: 24px;
+          padding: 40px;
+          width: 100%;
+          max-width: 550px;
+          box-shadow: var(--shadow);
+          text-align: center;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .card::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 6px;
+          background: linear-gradient(95deg, var(--accent), var(--success));
+        }
+
+        .badge {
+          display: inline-block;
+          padding: 6px 16px;
+          border-radius: 99px;
+          font-size: 0.8rem;
+          font-weight: 600;
+          background: rgba(129, 140, 248, 0.15);
+          color: var(--accent);
+          margin-bottom: 20px;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+
+        h1 {
+          font-family: 'Outfit', sans-serif;
+          font-size: 2.2rem;
+          font-weight: 800;
+          margin-bottom: 16px;
+          line-height: 1.2;
+          background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent) 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+        }
+
+        p {
+          font-size: 1rem;
+          line-height: 1.6;
+          color: var(--text-secondary);
+          margin-bottom: 30px;
+        }
+
+        .btn-theme {
+          background: var(--accent);
+          color: #ffffff;
+          border: none;
+          padding: 12px 28px;
+          font-size: 0.95rem;
+          font-weight: 600;
+          border-radius: 12px;
+          cursor: pointer;
+          box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+          transition: all 0.2s ease;
+        }
+
+        .btn-theme:hover {
+          background: var(--accent-hover);
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35);
+        }
+
+        .btn-theme:active {
+          transform: translateY(0);
+        }
+
+        .footer {
+          margin-top: 30px;
+          font-size: 0.8rem;
+          color: var(--text-secondary);
+          opacity: 0.8;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="card">
+        <div class="badge">Lab Day-D · GitOps v1.0</div>
+        <h1>Deliver Smartly</h1>
+        <p>Ứng dụng đã nâng cấp thành công lên Canary Deployment phối hợp kiểm thử tự động Auto-rollback và đo lường SLO/SLI.</p>
+        <button class="btn-theme" onclick="toggleTheme()">Đổi Giao Diện Sáng/Tối</button>
+        <div class="footer">Version: Stable (v1.0.0)</div>
+      </div>
+
+      <script>
+        function toggleTheme() {
+          const currentTheme = document.documentElement.getAttribute('data-theme');
+          const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+          document.documentElement.setAttribute('data-theme', newTheme);
+          localStorage.setItem('theme', newTheme);
+        }
+        
+        // Load preference
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+      </script>
+    </body>
+    </html>
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
 metadata:
   name: web
   namespace: demo
+  labels:
+    app: web
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   replicas: 4
+  strategy:
+    canary:
+      analysis:
+        templates:
+          - templateName: success-rate-analysis
+        args:
+          - name: service-name
+            value: web-service
+      steps:
+        - setWeight: 20
+        - pause: { duration: 30s }
+        - setWeight: 50
+        - pause: { duration: 30s }
+        - setWeight: 100
+  revisionHistoryLimit: 3
   selector:
     matchLabels:
       app: web
@@ -14,5 +217,96 @@ spec:
         app: web
     spec:
       containers:
-      - name: web
-        image: nginx:1.27
+        - name: web
+          image: nginx:alpine
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: web-html
+              mountPath: /usr/share/nginx/html/index.html
+              subPath: index.html
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: "25m"
+              memory: "32Mi"
+            limits:
+              cpu: "100m"
+              memory: "128Mi"
+      volumes:
+        - name: web-html
+          configMap:
+            name: web-html
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-service
+  namespace: demo
+  labels:
+    app: web
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  type: ClusterIP
+  selector:
+    app: web
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-preview-service
+  namespace: demo
+  labels:
+    app: web
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  type: ClusterIP
+  selector:
+    app: web
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 80
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: success-rate-analysis
+  namespace: demo
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  args:
+    - name: service-name
+  metrics:
+    - name: success-rate
+      interval: 10s
+      successCondition: result[0] >= 0.95
+      failureLimit: 3
+      provider:
+        prometheus:
+          address: http://prometheus-k8s.monitoring.svc.cluster.local:9090
+          query: |
+            sum(rate(http_requests_total{status=~"2.."}[1m]))
+            /
+            sum(rate(http_requests_total[1m]))
