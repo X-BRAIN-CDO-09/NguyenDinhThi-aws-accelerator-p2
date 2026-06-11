@@ -8,7 +8,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: 'https://github.com/TechX-Corp/xbrain-learners.git'
+    repoURL: 'https://github.com/X-BRAIN-CDO-09/NguyenDinhThi-aws-accelerator-p2.git'
     targetRevision: HEAD
     path: cloud/w9/day-a  # Path to Kubernetes manifests in the repo
   destination:
