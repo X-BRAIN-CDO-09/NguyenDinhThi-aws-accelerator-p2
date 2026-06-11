@@ -1,18 +1,19 @@
 # ============================================================
-# Argo Rollout: backend (Canary Strategy)
-# Lab 3 + Lab 4 + Challenge từ slide buổi chiều
+# Gap 7: Rollout variant dành cho Lab 4 — Manual Promote
 #
-# Canary Steps:
-#   20% → đợi 30s → 50% → đợi 30s → 100%
+# Khác với rollout.yaml (auto pause 30s):
+#   - pause: {}  → dừng VÔ HẠN, chờ người approve tay
+#   - Toàn bộ bước canary đều cần approve thủ công
 #
-# AnalysisTemplate tự chấm success rate:
-#   success_rate < 95% → ABORT → rollback tự động
+# Cách dùng Lab 4:
+#   1. Sao chép nội dung này đè vào backend/k8s/rollout.yaml
+#   2. git commit + push → ArgoCD sync → rollout bắt đầu
+#   3. Canary sẽ dừng ở 20% và đợi vô hạn
+#   4. kubectl argo rollouts get rollout backend -n demo --watch
+#   5. Sau khi verify OK: kubectl argo rollouts promote backend -n demo
+#   6. Promote thủ công bước tiếp theo
 #
-# Để test Lab 4 (manual promote):
-#   đổi pause: {duration: 30s} → pause: {}
-#
-# Để test Challenge (auto-abort):
-#   deploy với env ERROR_RATE: "0.2" → xem tự abort
+# Hoặc: Đổi lại sang rollout.yaml auto nếu muốn trở lại Lab 3
 # ============================================================
 apiVersion: argoproj.io/v1alpha1
 kind: Rollout
@@ -23,6 +24,7 @@ metadata:
     app: backend
   annotations:
     argocd.argoproj.io/sync-wave: "1"
+    lab: "lab4-manual-promote"
 spec:
   replicas: 4
   revisionHistoryLimit: 3
@@ -43,9 +45,9 @@ spec:
               containerPort: 8080
           env:
             - name: ERROR_RATE
-              value: "0.5"          # Đổi sang "0.5" để làm bản stable healthy
+              value: "0"          # Lab 4: giữ 0 để test happy path
             - name: VERSION
-              value: "v3-abort-2"   # Đổi để trigger rollout mới và test abort
+              value: "v4-manual"  # Version rõ ràng để phân biệt
             - name: DB_HOST
               valueFrom:
                 secretKeyRef:
@@ -77,20 +79,45 @@ spec:
               memory: "128Mi"
   strategy:
     canary:
-      canaryService: backend-preview-service   # 20→50% traffic
-      stableService: backend-service           # stable traffic
-      # Challenge: AnalysisTemplate tự chấm — bỏ comment để enable auto-abort
+      canaryService: backend-preview-service
+      stableService: backend-service
+      # AnalysisTemplate vẫn chạy ngầm để đo quality
+      # Nhưng manual gate quyết định proceed hay không
       analysis:
         templates:
           - templateName: success-rate-analysis
-        startingStep: 1   # bắt đầu chấm từ bước 1 (sau setWeight 20%)
+        startingStep: 1
         args:
           - name: namespace
             value: demo
       steps:
+        # ── Bước 1: 20% → DỪNG VÔ HẠN ──────────────────────
         - setWeight: 20
-        - pause: {duration: 5m}   # Tăng lên 5m để analysis run có thời gian fail 2 lần và tự abort
+        - pause: {}   # ⭐ Không có duration → chờ: kubectl argo rollouts promote backend -n demo
+
+        # ── Bước 2: 50% → DỪNG VÔ HẠN ──────────────────────
         - setWeight: 50
-        - pause: {duration: 30s}
+        - pause: {}   # ⭐ Approve lần 2
+
+        # ── Bước 3: 100% → PROMOTED ─────────────────────────
         - setWeight: 100
-# Trigger full CI build validate run
+
+# ============================================================
+# Hướng dẫn Lab 4 — Manual Promote Workflow:
+#
+# [Terminal 1] Watch rollout:
+#   kubectl argo rollouts get rollout backend -n demo --watch
+#
+# [Terminal 2] Approve:
+#   kubectl argo rollouts promote backend -n demo
+#
+# Sequence:
+#   Status: CanaryPaused (20%) ──promote──► CanaryPaused (50%) ──promote──► Healthy (100%)
+#
+# Nếu muốn ABORT tại bất kỳ bước nào:
+#   kubectl argo rollouts abort backend -n demo
+#
+# Xem Analysis đang chạy:
+#   kubectl get analysisrun -n demo
+#   kubectl describe analysisrun <name> -n demo
+# ============================================================
