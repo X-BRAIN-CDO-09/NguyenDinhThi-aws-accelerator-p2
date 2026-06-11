@@ -2,10 +2,17 @@
 # AnalysisTemplate: success-rate-analysis
 # Challenge từ slide buổi chiều
 #
-# Query Prometheus mỗi 30s để đo success rate của canary
-# Nếu success_rate < 95% và fail 3 lần liên tiếp → ABORT tự động
+# Gap 4: Thêm Metric 3 — Latency p99 < 500ms
 #
-# Metric dùng: flask_http_request_total (từ prometheus_flask_exporter)
+# 3 metrics tự chấm canary:
+#   Metric 1: success-rate >= 95%  (from slide)
+#   Metric 2: request-rate > 0     (service alive)
+#   Metric 3: latency p99 < 500ms  (Gap 4 — latency SLO dimension)
+#
+# Logic abort:
+#   Metric 1 fail 2 lần → ABORT (most critical)
+#   Metric 2 fail 3 lần → ABORT (no traffic = problem)
+#   Metric 3 fail 3 lần → ABORT (latency regression)
 # ============================================================
 apiVersion: argoproj.io/v1alpha1
 kind: AnalysisTemplate
@@ -17,14 +24,15 @@ spec:
     - name: namespace
       value: demo
   metrics:
-    # Metric 1: Success rate — từ slide buổi chiều
-    # query Prometheus tự chấm: >=95% success → HEALTHY, <95% → FAILURE
+    # ── Metric 1: Success Rate ─────────────────────────────
+    # Từ slide buổi chiều: query Prometheus tự chấm
+    # >= 95% success → HEALTHY, < 95% → FAILURE
     - name: success-rate
       initialDelay: 20s         # đợi 20s sau canary start để có đủ data
       interval: 30s             # query mỗi 30 giây
       count: 5                  # query tổng 5 lần (150s)
-      successCondition: result[0] >= 0.95   # >=95% thành công → OK
-      failureLimit: 2           # tệ 2 lần liên tiếp → ABORT
+      successCondition: result[0] >= 0.95   # >= 95% thành công → OK
+      failureLimit: 2           # tệ 2 lần liên tiếp → ABORT (nghiêm ngặt nhất)
       provider:
         prometheus:
           address: http://kube-prometheus-stack-prometheus.monitoring.svc.cluster.local:9090
@@ -33,15 +41,42 @@ spec:
             /
             sum(rate(flask_http_request_total{namespace="demo"}[2m]))
 
-    # Metric 2: Request rate > 0 (service đang nhận traffic)
+    # ── Metric 2: Request Rate > 0 (service alive) ────────
+    # Đảm bảo canary đang nhận traffic (không bị misconfigure)
     - name: request-rate-alive
       initialDelay: 20s
       interval: 30s
       count: 3
-      successCondition: result[0] >= 0
+      successCondition: result[0] >= 0    # Chỉ cần > 0 là có traffic
       failureLimit: 3
       provider:
         prometheus:
           address: http://kube-prometheus-stack-prometheus.monitoring.svc.cluster.local:9090
           query: |
             scalar(sum(rate(flask_http_request_total{namespace="demo"}[1m])) or vector(0))
+
+    # ── Metric 3: Latency p99 < 500ms (Gap 4) ─────────────
+    # SLO có cả latency dimension — không chỉ availability
+    # p99 latency < 0.5s → OK | >= 0.5s → FAIL (latency regression)
+    #
+    # Công thức: histogram_quantile(0.99, ...) trả về seconds
+    # Nếu chưa có histogram data (no traffic): trả 0 → OK
+    - name: latency-p99
+      initialDelay: 30s         # Đợi lâu hơn để histogram có đủ buckets
+      interval: 30s
+      count: 4                  # Query 4 lần (120s)
+      # p99 < 500ms = < 0.5s
+      successCondition: result[0] < 0.5
+      # Cho phép fail 3 lần (latency có thể spike ngắn)
+      failureLimit: 3
+      provider:
+        prometheus:
+          address: http://kube-prometheus-stack-prometheus.monitoring.svc.cluster.local:9090
+          query: |
+            histogram_quantile(0.99,
+              sum(rate(flask_http_request_duration_seconds_bucket{namespace="demo"}[2m]))
+              by (le)
+            ) or vector(0)
+            # "or vector(0)": nếu không có histogram data → trả 0 (< 0.5 → OK)
+            # Khi canary có latency cao → trả giá trị lớn → FAIL
+

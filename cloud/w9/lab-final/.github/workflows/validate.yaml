@@ -4,14 +4,20 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - 'backend/k8s/**'
-      - 'frontend/k8s/**'
-      - 'infra/k8s/**'
-      - 'argocd/**'
+      - 'cloud/w9/lab-final/backend/k8s/**'
+      - 'cloud/w9/lab-final/frontend/k8s/**'
+      - 'cloud/w9/lab-final/infra/k8s/**'
+      - 'cloud/w9/lab-final/argocd/**'
+      - 'cloud/w9/lab-final/app/**'
+
+# Concurrency: hủy run cũ nếu có PR mới
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   validate:
-    name: Validate K8s Manifests
+    name: Validate K8s Manifests (kubeconform)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -24,22 +30,37 @@ jobs:
           kubeconform -v
 
       - name: Validate backend manifests
+        working-directory: cloud/w9/lab-final
         run: |
           kubeconform -strict -summary \
             -skip Rollout,AnalysisTemplate,ServiceMonitor,PrometheusRule \
             backend/k8s/
 
       - name: Validate frontend manifests
-        run: kubeconform -strict -summary frontend/k8s/
+        working-directory: cloud/w9/lab-final
+        run: |
+          kubeconform -strict -summary frontend/k8s/
 
       - name: Validate infra manifests
+        working-directory: cloud/w9/lab-final
         run: |
+          # -skip Secret: alertmanager-config.yaml dùng Secret với stringData (alertmanager format)
           kubeconform -strict -summary \
             -skip PrometheusRule,ServiceMonitor,OpenTelemetryCollector \
             infra/k8s/
 
       - name: Validate ArgoCD apps
+        working-directory: cloud/w9/lab-final
         run: |
           kubeconform -strict -summary \
             -skip Application \
             argocd/apps/
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "  ✅ kubeconform validation complete"
+          echo "  Checked: backend/, frontend/, infra/, argocd/apps/"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+

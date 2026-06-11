@@ -2,6 +2,9 @@
 # ArgoCD Application: kube-prometheus-stack (Helm)
 # Lab 1 buổi chiều: Cài qua GitOps — KHÔNG kubectl helm install tay
 # root tự phát hiện file này và tạo Application
+#
+# Gap 1 + Gap 5: AlertManager email + inhibition rules
+# Config AlertManager từ Secret alertmanager-kube-prometheus-stack
 # ============================================================
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -24,15 +27,28 @@ spec:
             serviceMonitorSelectorNilUsesHelmValues: false
             ruleSelector: {}
             ruleSelectorNilUsesHelmValues: false
+
         grafana:
           adminPassword: admin123
           sidecar:
             dashboards:
               enabled: true
               searchNamespace: ALL
+
+        # ── Gap 1 + Gap 5: AlertManager Email + Inhibition ──
         alertmanager:
           alertmanagerSpec:
             retention: 24h
+            # ⭐ Đọc config từ Secret thay vì hardcode trong Helm values
+            # Secret: alertmanager-kube-prometheus-stack (infra/k8s/alertmanager-config.yaml)
+            # Chứa: SMTP settings, routes, inhibition rules, receivers
+            configSecret: alertmanager-kube-prometheus-stack
+
+          # Expose AlertManager UI qua NodePort để xem alert status
+          service:
+            type: NodePort
+            nodePort: 30093   # http://minikube_ip:30093
+
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring

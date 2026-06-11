@@ -25,7 +25,7 @@ spec:
     - name: backend-api-slo
       interval: 30s
       rules:
-        # ── SLI Recording Rule ──────────────────────────────────
+        # ── SLI Recording Rules ──────────────────────────────────
         # Tính sẵn success rate để dùng trong các alert
         - record: job:flask_http_request_success_rate:ratio_rate5m
           expr: |
@@ -44,6 +44,59 @@ spec:
             sum(rate(flask_http_request_total{namespace="demo",status!~"5.."}[6h]))
             /
             sum(rate(flask_http_request_total{namespace="demo"}[6h]))
+
+        # ── Gap 6: Canary vs Stable Traffic Split ────────────────
+        # Phân biệt stable service (backend-service) vs canary (backend-preview-service)
+        # Dùng label "service" từ Prometheus scrape targets
+        #
+        # Stable success rate — traffic qua backend-service (port 30080)
+        - record: job:flask_http_stable_success_rate:ratio_rate5m
+          expr: |
+            sum(rate(flask_http_request_total{namespace="demo",status!~"5..",service="backend-service"}[5m]))
+            /
+            sum(rate(flask_http_request_total{namespace="demo",service="backend-service"}[5m]))
+          labels:
+            track: stable
+
+        # Canary success rate — traffic qua backend-preview-service (port 30081)
+        - record: job:flask_http_canary_success_rate:ratio_rate5m
+          expr: |
+            sum(rate(flask_http_request_total{namespace="demo",status!~"5..",service="backend-preview-service"}[5m]))
+            /
+            sum(rate(flask_http_request_total{namespace="demo",service="backend-preview-service"}[5m]))
+          labels:
+            track: canary
+
+        # Latency p99 — toàn bộ backend (dùng cho Grafana dashboard)
+        - record: job:flask_http_request_duration_p99:5m
+          expr: |
+            histogram_quantile(0.99,
+              sum(rate(flask_http_request_duration_seconds_bucket{namespace="demo"}[5m]))
+              by (le)
+            )
+
+        # Latency p95 — toàn bộ backend
+        - record: job:flask_http_request_duration_p95:5m
+          expr: |
+            histogram_quantile(0.95,
+              sum(rate(flask_http_request_duration_seconds_bucket{namespace="demo"}[5m]))
+              by (le)
+            )
+
+        # Error Budget Remaining % (dùng cho Grafana Error Budget panel — Gap 3)
+        # SLO = 99.5%, Error Budget = 0.5%
+        # Công thức: 1 - (actual_error_rate / error_budget_rate)
+        - record: job:flask_http_error_budget_remaining:ratio_rate30d
+          expr: |
+            1 - (
+              (1 - sum(rate(flask_http_request_total{namespace="demo",status!~"5.."}[30d]))
+                   / sum(rate(flask_http_request_total{namespace="demo"}[30d])))
+              / 0.005
+            )
+            # Giải thích:
+            # Tử số: 1 - success_rate_30d = error_rate_30d (actual)
+            # Mẫu số: 0.005 = error_budget (100% - SLO 99.5%)
+            # Kết quả: 1.0 = budget đầy; 0.0 = budget hết; <0 = breach!
 
         # ── Fast Burn Alert (1h × 5m) ────────────────────────────
         # Burn rate > 14.4 → error budget sẽ cạn trong ~2 ngày
