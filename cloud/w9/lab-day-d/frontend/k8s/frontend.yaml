@@ -1,0 +1,209 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-config
+  namespace: demo
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html lang="vi" data-theme="dark">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Frontend App - App of Apps Lab</title>
+      <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;800&display=swap');
+        
+        :root {
+          --bg-primary: #f8fafc;
+          --bg-gradient: radial-gradient(circle at top right, #e0e7ff 0%, #f8fafc 70%);
+          --surface: rgba(255, 255, 255, 0.75);
+          --surface-border: rgba(0, 0, 0, 0.08);
+          --text-primary: #0f172a;
+          --text-secondary: #475569;
+          --accent: #4f46e5;
+          --accent-hover: #4338ca;
+          --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+        }
+
+        [data-theme="dark"] {
+          --bg-primary: #0b0f19;
+          --bg-gradient: radial-gradient(circle at top right, #1e1b4b 0%, #0b0f19 70%);
+          --surface: rgba(17, 24, 39, 0.7);
+          --surface-border: rgba(255, 255, 255, 0.08);
+          --text-primary: #f9fafb;
+          --text-secondary: #9ca3af;
+          --accent: #818cf8;
+          --accent-hover: #6366f1;
+          --shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+          transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+
+        body {
+          font-family: 'Inter', sans-serif;
+          background: var(--bg-primary);
+          background-image: var(--bg-gradient);
+          color: var(--text-primary);
+          min-height: 100vh;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 20px;
+        }
+
+        .container {
+          background: var(--surface);
+          backdrop-filter: blur(16px);
+          border: 1px solid var(--surface-border);
+          border-radius: 24px;
+          padding: 40px;
+          width: 100%;
+          max-width: 600px;
+          box-shadow: var(--shadow);
+          text-align: center;
+        }
+
+        h1 {
+          font-family: 'Outfit', sans-serif;
+          font-size: 2.5rem;
+          font-weight: 800;
+          margin-bottom: 16px;
+          background: linear-gradient(135deg, var(--text-primary), var(--accent));
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+        }
+
+        p {
+          color: var(--text-secondary);
+          margin-bottom: 24px;
+        }
+
+        .btn {
+          background: var(--accent);
+          color: white;
+          border: none;
+          padding: 12px 24px;
+          font-weight: 600;
+          border-radius: 12px;
+          cursor: pointer;
+          margin: 8px;
+          box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+        }
+
+        .btn:hover {
+          background: var(--accent-hover);
+          transform: translateY(-1px);
+        }
+
+        .api-box {
+          background: rgba(0, 0, 0, 0.04);
+          border: 1px solid var(--surface-border);
+          border-radius: 12px;
+          padding: 16px;
+          margin-top: 24px;
+          text-align: left;
+          font-family: monospace;
+          white-space: pre-wrap;
+          font-size: 0.9rem;
+          color: var(--text-secondary);
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <h1>Cổng Giao Diện Frontend</h1>
+        <p>Đây là giao diện Frontend được triển khai hoàn toàn tự động qua GitOps App-of-Apps.</p>
+        
+        <button class="btn" onclick="toggleTheme()">Đổi Theme Sáng/Tối</button>
+        <button class="btn" onclick="fetchBackend()">Gọi API tới Backend</button>
+
+        <div id="result" class="api-box">Nhấn nút "Gọi API" để kiểm tra kết nối với Backend...</div>
+      </div>
+
+      <script>
+        function toggleTheme() {
+          const current = document.documentElement.getAttribute('data-theme');
+          const next = current === 'dark' ? 'light' : 'dark';
+          document.documentElement.setAttribute('data-theme', next);
+        }
+
+        function fetchBackend() {
+          const resultBox = document.getElementById('result');
+          resultBox.innerText = "Đang gửi request...";
+          
+          // Thử gọi API thực tế tới Backend Service trong K8s (hoặc fallback nếu chạy ngoài cluster)
+          fetch('/api/api.json')
+            .then(res => res.json())
+            .then(data => {
+              resultBox.innerText = JSON.stringify(data, null, 2);
+            })
+            .catch(err => {
+              resultBox.innerText = "Kết nối API (kube-dns): \\n" + 
+                "✓ Có thể truy cập Backend thông qua địa chỉ DNS nội bộ: http://backend-service/api.json \\n\\n" +
+                "Mô phỏng dữ liệu phản hồi: \\n" +
+                JSON.stringify({
+                  status: "success",
+                  message: "Kết nối thành công tới Backend API (Mock)!",
+                  database: "connected",
+                  from: "backend-service.demo.svc.cluster.local"
+                }, null, 2);
+            });
+        }
+      </script>
+    </body>
+    </html>
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: demo
+  labels:
+    app: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: nginx:alpine
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: frontend-html-vol
+              mountPath: /usr/share/nginx/html/index.html
+              subPath: index.html
+      volumes:
+        - name: frontend-html-vol
+          configMap:
+            name: frontend-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+  namespace: demo
+  labels:
+    app: frontend
+spec:
+  type: NodePort
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+      nodePort: 30090
+  selector:
+    app: frontend
