@@ -53,7 +53,7 @@ spec:
         prometheus:
           address: http://kube-prometheus-stack-prometheus.monitoring.svc.cluster.local:9090
           query: |
-            scalar(sum(rate(flask_http_request_total{namespace="demo"}[1m])) or vector(0))
+            sum(rate(flask_http_request_total{namespace="demo"}[1m])) or vector(0)
 
     # ── Metric 3: Latency p99 < 500ms (Gap 4) ─────────────
     # SLO có cả latency dimension — không chỉ availability
