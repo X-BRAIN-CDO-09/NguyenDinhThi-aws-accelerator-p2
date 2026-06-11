@@ -24,7 +24,8 @@ data:
             - job_name: 'backend-app'
               scrape_interval: 5s
               static_configs:
-                - targets: ['backend-service.demo.svc.cluster.local:80']
+                # scrape metrics từ nginx-prometheus-exporter sidecar trên port 9113
+                - targets: ['backend-service.demo.svc.cluster.local:9113']
 
     processors:
       batch:
