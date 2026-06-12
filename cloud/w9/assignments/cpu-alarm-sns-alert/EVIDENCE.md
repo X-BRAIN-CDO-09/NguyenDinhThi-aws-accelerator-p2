@@ -163,13 +163,21 @@ INSUFFICIENT_DATA ──────────────────► OK
 
 #### 4.1 Stress Test Đang Chạy
 
-![SS-08: Terminal stress-ng chạy, CPU = ~100%](assets/SS-08_stress_test_running.png)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/SS-08_stress_test_running_dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="assets/SS-08_stress_test_running_light.png">
+  <img src="assets/SS-08_stress_test_running.png" alt="SS-08: Terminal stress-ng chạy, CPU = ~100%">
+</picture>
 
 ---
 
 #### 4.2 CloudWatch Alarm → ALARM State 🔥
 
-![SS-09: Alarm chuyển sang ALARM state, CPU > 80% trong 5 phút](assets/SS-09_alarm_state_firing.png)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/SS-09_alarm_state_firing_dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="assets/SS-09_alarm_state_firing_light.png">
+  <img src="assets/SS-09_alarm_state_firing.png" alt="SS-09: Alarm chuyển sang ALARM state, CPU > 80% trong 5 phút">
+</picture>
 
 ---
 

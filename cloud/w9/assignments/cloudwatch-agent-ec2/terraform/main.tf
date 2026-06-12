@@ -165,89 +165,60 @@ resource "aws_instance" "lab_ec2" {
   # ─────────────────────────────────────────────
   # USER DATA: Tự động thực hiện đủ 4 bước từ slide
   # ─────────────────────────────────────────────
-  user_data = base64encode(<<-EOF
-    #!/bin/bash
-    set -e
-    exec > /var/log/lab-setup.log 2>&1
-
-    echo "============================================="
-    echo "W9 Session 02 — CloudWatch Agent Lab Setup"
-    echo "Started at: $(date)"
-    echo "============================================="
-
-    # ─── BƯỚC 1: Install the Agent Package ───────
-    echo "[STEP 1] Installing CloudWatch Agent..."
-    dnf update -y
-    dnf install -y amazon-cloudwatch-agent stress-ng
-
-    echo "[STEP 1] CloudWatch Agent installed successfully."
-
-    # ─── BƯỚC 2: Run Configuration (dùng JSON config từ SSM) ──
-    echo "[STEP 2] Fetching agent config from SSM Parameter Store..."
-    /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
-      -a fetch-config \
-      -m ec2 \
-      -s \
-      -c ssm:/w9-lab/cloudwatch-agent/config
-
-    echo "[STEP 2] Agent config applied from SSM."
-
-    # ─── BƯỚC 3: Start the Agent ──────────────────
-    echo "[STEP 3] Enabling and starting CloudWatch Agent..."
-    systemctl enable amazon-cloudwatch-agent
-    systemctl start amazon-cloudwatch-agent
-
-    echo "[STEP 3] CloudWatch Agent started."
-
-    # ─── BƯỚC 4: Verify & Check Status ───────────
-    echo "[STEP 4] Verifying CloudWatch Agent status..."
-    /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
-      -m ec2 \
-      -a status
-
-    echo "[STEP 4] Verification complete."
-
-    # ─── Tạo các scripts tiện ích ─────────────────
-    cat > /home/ec2-user/verify-agent.sh << 'VERIFY_SCRIPT'
-#!/bin/bash
-echo "========================================="
-echo " CloudWatch Agent Status Check"
-echo "========================================="
-echo ""
-echo "[1] Agent Process Status:"
-/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -m ec2 -a status
-echo ""
-echo "[2] Systemd Service Status:"
-systemctl status amazon-cloudwatch-agent --no-pager
-echo ""
-echo "[3] Agent Log (last 20 lines):"
-tail -20 /opt/aws/amazon-cloudwatch-agent/logs/amazon-cloudwatch-agent.log
-VERIFY_SCRIPT
-
-    cat > /home/ec2-user/generate-memory-load.sh << 'LOAD_SCRIPT'
-#!/bin/bash
-echo "========================================="
-echo " Memory Load Generator"
-echo " Tạo tải bộ nhớ để test mem_used_percent"
-echo "========================================="
-echo ""
-echo "Chạy stress-ng: 2 workers chiếm 70% RAM trong 120 giây..."
-echo "Xem CloudWatch Metrics sau ~2 phút để thấy mem_used_percent tăng"
-echo ""
-stress-ng --vm 2 --vm-bytes 70% --timeout 120s --metrics-brief
-echo ""
-echo "Done! Kiểm tra CloudWatch trong vài phút tới."
-LOAD_SCRIPT
-
-    chmod +x /home/ec2-user/verify-agent.sh /home/ec2-user/generate-memory-load.sh
-    chown ec2-user:ec2-user /home/ec2-user/verify-agent.sh /home/ec2-user/generate-memory-load.sh
-
-    echo "============================================="
-    echo "Setup complete at: $(date)"
-    echo "CloudWatch Agent is running and sending metrics."
-    echo "Namespace: ${var.custom_metrics_namespace}"
-    echo "============================================="
-  EOF
+  user_data = base64encode(
+    join("\n", [
+      "#!/bin/bash",
+      "set -e",
+      "exec > /var/log/lab-setup.log 2>&1",
+      "",
+      "echo '============================================='",
+      "echo 'W9 Session 02 - CloudWatch Agent Lab Setup'",
+      "echo \"Started at: $(date)\"",
+      "echo '============================================='",
+      "",
+      "echo '[STEP 1] Installing CloudWatch Agent...'",
+      "dnf update -y",
+      "dnf install -y amazon-cloudwatch-agent stress-ng",
+      "echo '[STEP 1] CloudWatch Agent installed successfully.'",
+      "",
+      "echo '[STEP 2] Fetching agent config from SSM Parameter Store...'",
+      "/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -s -c ssm:/w9-lab/cloudwatch-agent/config",
+      "echo '[STEP 2] Agent config applied from SSM.'",
+      "",
+      "echo '[STEP 3] Enabling and starting CloudWatch Agent...'",
+      "systemctl enable amazon-cloudwatch-agent",
+      "systemctl start amazon-cloudwatch-agent",
+      "echo '[STEP 3] CloudWatch Agent started.'",
+      "",
+      "echo '[STEP 4] Verifying CloudWatch Agent status...'",
+      "/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -m ec2 -a status",
+      "echo '[STEP 4] Verification complete.'",
+      "",
+      "cat > /home/ec2-user/verify-agent.sh << 'VERIFY_SCRIPT'",
+      "#!/bin/bash",
+      "echo '========================================='",
+      "echo ' CloudWatch Agent Status Check'",
+      "echo '========================================='",
+      "/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -m ec2 -a status",
+      "systemctl status amazon-cloudwatch-agent --no-pager",
+      "tail -20 /opt/aws/amazon-cloudwatch-agent/logs/amazon-cloudwatch-agent.log",
+      "VERIFY_SCRIPT",
+      "",
+      "cat > /home/ec2-user/generate-memory-load.sh << 'LOAD_SCRIPT'",
+      "#!/bin/bash",
+      "echo 'Running stress-ng: 2 workers, 70% RAM, 120s'",
+      "stress-ng --vm 2 --vm-bytes 70% --timeout 120s --metrics-brief",
+      "echo 'Done! Check CloudWatch in a few minutes.'",
+      "LOAD_SCRIPT",
+      "",
+      "chmod +x /home/ec2-user/verify-agent.sh /home/ec2-user/generate-memory-load.sh",
+      "chown ec2-user:ec2-user /home/ec2-user/verify-agent.sh /home/ec2-user/generate-memory-load.sh",
+      "",
+      "echo '============================================='",
+      "echo 'Setup complete!'",
+      "echo 'Namespace: ${var.custom_metrics_namespace}'",
+      "echo '============================================='"
+    ])
   )
 
   tags = {
