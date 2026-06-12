@@ -33,7 +33,7 @@ stringData:
       smtp_auth_password: 'fzpxdgferuhralfw'   # Gmail App Password
       smtp_require_tls: true
 
-      resolve_timeout: 5m
+      resolve_timeout: 1m
 
     # ── Route Tree ─────────────────────────────────────────
     # Cấu trúc: root → children theo severity
@@ -94,7 +94,7 @@ stringData:
           - to: 'thihtktk@gmail.com'
             send_resolved: true
             headers:
-              Subject: '🔥 [CRITICAL] {{ .GroupLabels.alertname }} - W9 Lab'
+              Subject: '{{ if .Alerts.Firing }}🔥 [FIRING] {{ else }}✅ [RESOLVED] {{ end }}{{ .GroupLabels.alertname }} - W9 Lab'
             html: |
               <h2>🚨 Alert CRITICAL</h2>
               {{ range .Alerts }}
@@ -108,6 +108,16 @@ stringData:
               <p><b>Action:</b> kubectl argo rollouts abort backend -n demo</p>
               <p><a href="http://localhost:9090/alerts">Prometheus Alerts</a> | <a href="http://localhost:3000">Grafana Dashboard</a></p>
               {{ end }}
+              {{ if .Alerts.Resolved }}
+              <h2 style="color:green">✅ RESOLVED</h2>
+              {{ range .Alerts.Resolved }}
+              <table border="1" style="border-collapse:collapse;padding:8px;border-color:green">
+                <tr><td><b>Alert</b></td><td>{{ .Labels.alertname }}</td></tr>
+                <tr><td><b>Resolved At</b></td><td>{{ .EndsAt.Format "2006-01-02 15:04:05" }}</td></tr>
+                <tr><td><b>Duration</b></td><td>{{ .StartsAt.Format "15:04:05" }} → {{ .EndsAt.Format "15:04:05" }}</td></tr>
+              </table><br>
+              {{ end }}
+              {{ end }}
 
       # Warning: Batched, less urgent
       - name: 'email-warning'
@@ -115,7 +125,7 @@ stringData:
           - to: 'thihtktk@gmail.com'
             send_resolved: true
             headers:
-              Subject: '⚠️ [WARNING] {{ .GroupLabels.alertname }} - W9 Lab'
+              Subject: '{{ if .Alerts.Firing }}⚠️ [FIRING] {{ else }}✅ [RESOLVED] {{ end }}{{ .GroupLabels.alertname }} - W9 Lab'
             html: |
               <h2>⚠️ Alert WARNING</h2>
               {{ range .Alerts }}
@@ -124,5 +134,14 @@ stringData:
                 <tr><td><b>Summary</b></td><td>{{ .Annotations.summary }}</td></tr>
                 <tr><td><b>Description</b></td><td>{{ .Annotations.description }}</td></tr>
               </table><br>
+              {{ end }}
+              {{ if .Alerts.Resolved }}
+              <h2 style="color:green">✅ RESOLVED</h2>
+              {{ range .Alerts.Resolved }}
+              <table border="1" style="border-collapse:collapse;padding:8px;border-color:green">
+                <tr><td><b>Alert</b></td><td>{{ .Labels.alertname }}</td></tr>
+                <tr><td><b>Resolved At</b></td><td>{{ .EndsAt.Format "2006-01-02 15:04:05" }}</td></tr>
+              </table><br>
+              {{ end }}
               {{ end }}
               <p>Action: Create ticket and review canary rollout</p>
