@@ -1,0 +1,33 @@
+# =====================================================
+# COPY FILE NÀY → terraform.tfvars
+# Điền thông tin thật của bạn vào
+# =====================================================
+
+# ⚠️  BẮT BUỘC: Email nhận cảnh báo
+alert_email = "your-email@gmail.com"
+
+# AWS Region (mặc định Singapore)
+aws_region = "ap-southeast-1"
+
+# Instance type (t3.micro — free tier eligible)
+instance_type = "t3.micro"
+
+# Tên key pair trong AWS (để SSH vào EC2)
+# Để trống "" nếu không cần SSH
+# Đảm bảo file .pem đã tải về máy
+key_pair_name = ""
+
+# Ngưỡng CPU cảnh báo (%)
+cpu_threshold = 80
+
+# Thời gian đánh giá (giây) — 300s = 5 phút
+alarm_period_seconds = 300
+
+# Số periods liên tiếp cần đạt ngưỡng
+evaluation_periods = 1
+
+# Tên project (dùng để đặt tên resource)
+project_name = "w9-cpu-alarm-lab"
+
+# Môi trường
+environment = "lab"
