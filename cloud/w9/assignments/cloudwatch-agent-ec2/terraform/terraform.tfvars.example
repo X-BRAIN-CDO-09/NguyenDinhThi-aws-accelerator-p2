@@ -1,0 +1,13 @@
+# ─── Bắt buộc điền ──────────────────────────────────────────────
+aws_region    = "ap-southeast-1"     # Region AWS của bạn
+instance_type = "t3.micro"           # Loại EC2 (t3.micro nằm trong Free Tier)
+
+# ─── Tùy chọn (bỏ trống để dùng SSM Session Manager thay SSH) ──
+key_pair_name = ""                   # Điền tên Key Pair nếu muốn dùng SSH
+                                     # Ví dụ: key_pair_name = "w9-key"
+
+# ─── Cài đặt Lab ────────────────────────────────────────────────
+project_name             = "w9-cw-agent-lab"
+environment              = "lab"
+custom_metrics_namespace = "W9Lab/CustomMetrics"
+metrics_collection_interval = 60     # Gửi metrics mỗi 60 giây

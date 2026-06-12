@@ -1,0 +1,97 @@
+{
+  "agent": {
+    "metrics_collection_interval": 60,
+    "run_as_user": "root",
+    "logfile": "/opt/aws/amazon-cloudwatch-agent/logs/amazon-cloudwatch-agent.log"
+  },
+  "metrics": {
+    "namespace": "W9Lab/CustomMetrics",
+    "append_dimensions": {
+      "InstanceId": "${aws:InstanceId}",
+      "InstanceType": "${aws:InstanceType}",
+      "AutoScalingGroupName": "${aws:AutoScalingGroupName}"
+    },
+    "aggregation_dimensions": [["InstanceId"]],
+    "metrics_collected": {
+      "cpu": {
+        "resources": ["*"],
+        "measurement": [
+          "cpu_usage_user",
+          "cpu_usage_system",
+          "cpu_usage_idle",
+          "cpu_usage_iowait"
+        ],
+        "totalcpu": true,
+        "metrics_collection_interval": 60
+      },
+      "mem": {
+        "measurement": [
+          "mem_used_percent",
+          "mem_used",
+          "mem_available",
+          "mem_total"
+        ],
+        "metrics_collection_interval": 60
+      },
+      "disk": {
+        "resources": ["/"],
+        "measurement": [
+          "disk_used_percent",
+          "disk_used",
+          "disk_free",
+          "disk_total"
+        ],
+        "metrics_collection_interval": 60,
+        "ignore_file_system_types": ["sysfs", "devtmpfs", "tmpfs"]
+      },
+      "diskio": {
+        "resources": ["*"],
+        "measurement": [
+          "reads",
+          "writes",
+          "read_bytes",
+          "write_bytes",
+          "read_time",
+          "write_time"
+        ],
+        "metrics_collection_interval": 60
+      },
+      "net": {
+        "resources": ["eth0"],
+        "measurement": [
+          "bytes_recv",
+          "bytes_sent",
+          "packets_recv",
+          "packets_sent"
+        ],
+        "metrics_collection_interval": 60
+      }
+    }
+  },
+  "logs": {
+    "logs_collected": {
+      "files": {
+        "collect_list": [
+          {
+            "file_path": "/var/log/messages",
+            "log_group_name": "/w9-lab/ec2/system",
+            "log_stream_name": "{instance_id}/messages",
+            "retention_in_days": 7
+          },
+          {
+            "file_path": "/opt/aws/amazon-cloudwatch-agent/logs/amazon-cloudwatch-agent.log",
+            "log_group_name": "/w9-lab/cloudwatch-agent",
+            "log_stream_name": "{instance_id}/agent",
+            "retention_in_days": 7
+          },
+          {
+            "file_path": "/var/log/lab-setup.log",
+            "log_group_name": "/w9-lab/ec2/setup",
+            "log_stream_name": "{instance_id}/setup",
+            "retention_in_days": 7
+          }
+        ]
+      }
+    }
+  }
+}
