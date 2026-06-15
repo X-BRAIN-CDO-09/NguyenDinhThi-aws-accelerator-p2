@@ -18,5 +18,3 @@
 | SS-10_email_alert_received.png | Email ALARM nhận được tại Gmail |
 | SS-11_cloudtrail_event_detail.png | CloudTrail event detail — Root login event |
 | SS-12_dashboard_overview.png | CloudWatch Dashboard tổng quan |
-| SS-13_terraform_apply_success.png | terraform apply — Apply complete! N resources added |
-| SS-14_terraform_destroy_success.png | terraform destroy — Destroy complete! N resources destroyed |

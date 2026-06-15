@@ -248,27 +248,6 @@ Root Login → CloudTrail records event (~< 1 phút)
 
 ---
 
-### PHẦN 7 — Terraform IaC (Bonus)
-
-#### 7.1 Terraform Apply Thành Công
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/SS-13_terraform_apply_success_dark.png">
-  <source media="(prefers-color-scheme: light)" srcset="assets/SS-13_terraform_apply_success_light.png">
-  <img src="assets/SS-13_terraform_apply_success.png" alt="SS-13: Terminal terraform apply - Apply complete!">
-</picture>
-
----
-
-#### 7.2 Terraform Destroy — Cleanup
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/SS-14_terraform_destroy_success_dark.png">
-  <source media="(prefers-color-scheme: light)" srcset="assets/SS-14_terraform_destroy_success_light.png">
-  <img src="assets/SS-14_terraform_destroy_success.png" alt="SS-14: Terminal terraform destroy - Destroy complete!">
-</picture>
-
----
 
 ## V. KẾT LUẬN
 
