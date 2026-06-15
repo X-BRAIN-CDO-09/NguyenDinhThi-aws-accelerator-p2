@@ -1,0 +1,28 @@
+# ─────────────────────────────────────────────────────────
+# terraform.tfvars.example
+# Copy file này thành terraform.tfvars và điền thông tin thật
+# KHÔNG commit terraform.tfvars lên Git!
+# ─────────────────────────────────────────────────────────
+
+# REQUIRED: Email sẽ nhận cảnh báo khi root account đăng nhập
+alert_email = "your-email@gmail.com"
+
+# AWS region (mặc định là Singapore)
+aws_region = "ap-southeast-1"
+
+# Tên project (dùng làm prefix cho tên tài nguyên AWS)
+project_name = "w9-root-alert-lab"
+
+# CloudTrail configuration
+cloudtrail_name  = "w9-root-alert-lab-trail"
+log_group_name   = "/aws/cloudtrail/root-login-alert"
+log_retention_days = 7
+
+# Metric Filter configuration
+metric_namespace = "Security"
+metric_name      = "RootAccountLoginCount"
+
+# Alarm configuration
+alarm_period_seconds = 300   # 5 minutes
+evaluation_periods   = 1
+alarm_threshold      = 1     # Bất kỳ root login nào = alarm
