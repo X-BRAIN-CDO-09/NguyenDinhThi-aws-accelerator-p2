@@ -9,6 +9,13 @@
 
 set -e
 
+# Fallback to aws.exe on Windows bash environments
+if ! command -v aws &> /dev/null && command -v aws.exe &> /dev/null; then
+  aws() {
+    aws.exe "$@" | tr -d '\r'
+  }
+fi
+
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'

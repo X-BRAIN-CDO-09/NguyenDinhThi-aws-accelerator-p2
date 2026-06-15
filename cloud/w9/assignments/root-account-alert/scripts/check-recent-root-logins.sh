@@ -7,6 +7,13 @@
 
 set -e
 
+# Fallback to aws.exe on Windows bash environments
+if ! command -v aws &> /dev/null && command -v aws.exe &> /dev/null; then
+  aws() {
+    aws.exe "$@" | tr -d '\r'
+  }
+fi
+
 REGION="${1:-ap-southeast-1}"
 LOG_GROUP="${2:-/aws/cloudtrail/root-login-alert}"
 HOURS="${3:-24}"
