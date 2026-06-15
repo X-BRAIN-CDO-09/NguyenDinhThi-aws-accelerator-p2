@@ -1,86 +1,85 @@
-# README.md — W9 Session 05
-## Hands-On: Alert on AWS Root Account Login
+<p align="center">
+  <img src="https://img.icons8.com/color/96/000000/cloud-systems.png" alt="AWS DevOps Logo" width="80"/>
+</p>
+
+# <p align="center">🔒 Alert on AWS Root Account Login</p>
+
+### <p align="center">W9 Session 05 — Mastering AWS System Monitoring</p>
+
+<p align="center">
+  <a href="https://aws.amazon.com"><img src="https://img.shields.io/badge/AWS-CLOUD-FF9900?style=for-the-badge&logo=amazon-aws&logoColor=white" alt="AWS"/></a>
+  <a href="https://terraform.io"><img src="https://img.shields.io/badge/TERRAFORM-IaC-7B42BC?style=for-the-badge&logo=terraform&logoColor=white" alt="Terraform"/></a>
+  <a href="https://aws.amazon.com/cloudtrail/"><img src="https://img.shields.io/badge/CLOUDTRAIL-AUDITING-009688?style=for-the-badge&logo=amazonaws&logoColor=white" alt="CloudTrail"/></a>
+  <a href="https://aws.amazon.com/cloudwatch/"><img src="https://img.shields.io/badge/CLOUDWATCH-ALARM-FF4F00?style=for-the-badge&logo=amazon-cloudwatch&logoColor=white" alt="CloudWatch"/></a>
+</p>
 
 ---
 
-## 🎯 Mục tiêu Lab
+## 🎯 Vấn Đề Bài Lab Giải Quyết
 
-Thiết lập hệ thống cảnh báo tự động khi **root account** đăng nhập vào AWS Console — một trong những Security Best Practices quan trọng nhất của AWS.
+Tài khoản **Root** (tài khoản gốc của AWS) sở hữu đặc quyền tối cao đối với toàn bộ tài nguyên và thông tin thanh toán của tài khoản Cloud. Bất kỳ sự xâm nhập trái phép nào vào tài khoản Root đều gây ra những thảm họa an ninh thông tin không thể đảo ngược. 
 
-> **Security Best Practice:** "The root account should almost never be used. Alert immediately if it is!"
+> [!CAUTION]
+> **AWS Security Best Practice:** Hạn chế tối đa việc sử dụng tài khoản Root cho các tác vụ hàng ngày và thiết lập cơ chế **Cảnh báo tự động tức thì** bất kỳ khi nào có sự đăng nhập của tài khoản Root.
 
 ---
 
-## 📐 Kiến trúc
+## 📐 Kiến Trúc Hệ Thống (Architecture)
 
-```
-Root Login
-    │
-    ▼
-┌─────────────────────┐
-│ AWS CloudTrail      │ ← Ghi lại ALL API calls (Management Events)
-│ Trail: w9-root-...  │
-└──────────┬──────────┘
-           │ real-time stream
-           ▼
-┌─────────────────────┐
-│ CloudWatch Logs     │ ← Log Group: /aws/cloudtrail/root-login-alert
-└──────────┬──────────┘
-           │ Metric Filter
-           │ Pattern: { $.userIdentity.type = "Root" && ...}
-           ▼
-┌─────────────────────┐
-│ Custom Metric       │ ← Namespace: Security
-│ RootAccountLoginCount│   Value: 1 mỗi khi root login
-└──────────┬──────────┘
-           │ >= 1 trong 5 phút
-           ▼
-┌─────────────────────┐
-│ CloudWatch Alarm    │ ← Trigger ngay khi có 1 root login
-└──────────┬──────────┘
-           │
-           ▼
-┌─────────────────────┐
-│ SNS Topic           │ → 📧 Email Alert tới Security Team
-└─────────────────────┘
+```mermaid
+graph TD
+    subgraph "AWS Cloud Infrastructure"
+        RootLogin[Root Account Console Login] -->|Audited by| CloudTrail[AWS CloudTrail]
+        CloudTrail -->|Real-time stream logs| LogGroup[CloudWatch Log Group]
+        LogGroup -->|Metric Filter matches Root pattern| Metric[Custom Metric: RootAccountLoginCount]
+        Metric -->|If Count >= 1 in 5m| Alarm[CloudWatch Alarm]
+        Alarm -->|Trigger| SNS[SNS Topic: Root-Alerts]
+    end
+    
+    SNS -->|Send Urgent Alert| Email[📧 thihtktk@gmail.com]
+
+    classDef aws fill:#FF9900,stroke:#333,stroke-width:1px,color:#fff;
+    class CloudTrail,LogGroup,Metric,Alarm,SNS aws;
 ```
 
 ---
 
-## 📋 Tài nguyên được tạo (Terraform)
+## 📋 Danh Sách Tài Nguyên Được Khởi Tạo (Terraform)
 
-| # | Resource | Tên | Mục đích |
-|---|----------|-----|---------|
-| 1 | `aws_s3_bucket` | `...-cloudtrail-logs-{accountId}` | Lưu CloudTrail log files |
-| 2 | `aws_s3_bucket_policy` | — | Cho phép CloudTrail ghi vào S3 |
-| 3 | `aws_cloudwatch_log_group` | `/aws/cloudtrail/root-login-alert` | CloudWatch Logs nhận CloudTrail events |
-| 4 | `aws_iam_role` | `...-cloudtrail-cw-role` | IAM Role cho CloudTrail → CW Logs |
-| 5 | `aws_iam_role_policy` | — | Policy: PutLogEvents |
-| 6 | `aws_cloudtrail` | `w9-root-alert-lab-trail` | Trail theo dõi management events |
-| 7 | `aws_cloudwatch_log_metric_filter` | `...-root-login-filter` | Metric Filter: lọc Root login events |
-| 8 | `aws_sns_topic` | `...-root-account-alerts` | SNS Topic nhận alarm |
-| 9 | `aws_sns_topic_subscription` | Email subscription | Gửi email khi alarm |
-| 10 | `aws_cloudwatch_metric_alarm` | `...-root-login-detected` | Alarm khi có root login |
-| 11 | `aws_cloudwatch_dashboard` | `...-security-dashboard` | Dashboard bảo mật tổng quan |
+| # | Tài nguyên (Resource) | Tên tài nguyên trên AWS | Vai trò & Mục đích sử dụng |
+| :---: | :--- | :--- | :--- |
+| **1** | `aws_s3_bucket` | `...-cloudtrail-logs-{accountId}` | Lưu trữ tệp tin log của CloudTrail lâu dài. |
+| **2** | `aws_s3_bucket_policy` | — | Cho phép dịch vụ CloudTrail ghi dữ liệu vào S3 Bucket. |
+| **3** | `aws_cloudwatch_log_group` | `/aws/cloudtrail/root-login-alert` | Nơi tập trung nhận log stream thời gian thực từ CloudTrail. |
+| **4** | `aws_iam_role` | `...-cloudtrail-cw-role` | Ủy quyền cho CloudTrail có quyền ghi log vào CloudWatch. |
+| **5** | `aws_iam_role_policy` | — | Cho phép thực thi hành động `PutLogEvents`. |
+| **6** | `aws_cloudtrail` | `w9-root-alert-lab-trail` | Theo dõi và bắt các sự kiện quản trị (Management Events). |
+| **7** | `aws_cloudwatch_log_metric_filter` | `...-root-login-filter` | Bộ lọc dò tìm các sự kiện đăng nhập của tài khoản Root. |
+| **8** | `aws_sns_topic` | `...-root-account-alerts` | Kênh SNS nhận tín hiệu cảnh báo từ Alarm. |
+| **9** | `aws_sns_topic_subscription` | Email subscription | Tự động gửi email thông báo bảo mật tới Admin. |
+| **10** | `aws_cloudwatch_metric_alarm` | `...-root-login-detected` | Alarm kích hoạt ngay khi số lần đăng nhập Root `>= 1`. |
+| **11** | `aws_cloudwatch_dashboard` | `...-security-dashboard` | Dashboard tổng quan theo dõi các chỉ số bảo mật. |
 
 ---
 
-## 🚀 Cách chạy Lab
+## 🚀 Hướng Dẫn Các Bước Thực Hiện Lab
 
-### Bước 1: Chuẩn bị
+### Bước 1: Thiết Lập Biến Môi Trường
 
 ```bash
 # Di chuyển vào thư mục terraform
 cd assignments/root-account-alert/terraform
 
-# Copy file config mẫu
+# Sao chép tệp cấu hình mẫu
 cp terraform.tfvars.example terraform.tfvars
-
-# Chỉnh sửa terraform.tfvars — điền email thật
-notepad terraform.tfvars  # hoặc dùng VS Code
 ```
 
-### Bước 2: Triển khai
+Mở tệp `terraform.tfvars` và điền địa chỉ email thật của bạn để nhận tin nhắn cảnh báo:
+```hcl
+alert_email = "your-email@gmail.com"
+```
+
+### Bước 2: Triển Khai IaC Tự Động
 
 ```bash
 terraform init
@@ -88,34 +87,27 @@ terraform plan
 terraform apply -auto-approve
 ```
 
-### Bước 3: Xác nhận email
+### Bước 3: Xác Nhận Đăng Ký Nhận Cảnh Báo (Subscription)
 
-```
-⚠️ Sau khi apply xong, kiểm tra email ngay!
-→ AWS gửi "AWS Notification - Subscription Confirmation"
-→ Click "Confirm subscription" để kích hoạt alert
-```
+> [!IMPORTANT]
+> **Hành động bắt buộc:** Sau khi quá trình apply hoàn tất, hãy truy cập Gmail của bạn và click vào đường dẫn **"Confirm subscription"** trong thư gửi từ AWS để bắt đầu kích hoạt nhận cảnh báo bảo mật.
 
-### Bước 4: Verify
+### Bước 4: Chạy Script Xác Thực Hệ Thống
 
 ```bash
-bash scripts/verify-alert.sh w9-root-alert-lab ap-southeast-1
+# Chạy script verify kiểm tra xem toàn bộ hạ tầng đã sẵn sàng hay chưa
+./scripts/verify-alert.sh
 ```
 
-### Bước 5: Test Alarm (an toàn — không cần login root)
+### Bước 5: Giả Lập Đăng Nhập Root Để Kiểm Thử (Stress Test)
 
+Để đảm bảo an toàn và không cần đăng nhập tài khoản Root thật, chúng ta giả lập bằng cách đẩy điểm dữ liệu metric:
 ```bash
-# Tạo giả metric để trigger alarm (không cần login root!)
-aws cloudwatch put-metric-data \
-  --namespace "Security" \
-  --metric-name "RootAccountLoginCount" \
-  --value 1 \
-  --region ap-southeast-1
-
-# Sau 5 phút → Email alert sẽ đến!
+aws cloudwatch put-metric-data --namespace "Security" --metric-name "RootAccountLoginCount" --value 1 --region ap-southeast-1
 ```
+➔ Sau khoảng 1-2 phút, trạng thái Alarm sẽ chuyển sang **ALARM 🚨** màu đỏ và gửi một Email khẩn cấp đến hòm thư của bạn.
 
-### Bước 6: Dọn dẹp
+### Bước 6: Thu Dọn Tài Nguyên Lab
 
 ```bash
 terraform destroy -auto-approve
@@ -123,30 +115,8 @@ terraform destroy -auto-approve
 
 ---
 
-## 📸 Evidence Screenshots cần chụp
+## 💡 Bài Học Rút Ra & Best Practices
 
-| SS | Tên file | Nội dung |
-|----|---------|---------|
-| SS-01 | `SS-01_cloudtrail_trail_created.png` | CloudTrail Trail đang logging |
-| SS-02 | `SS-02_cloudwatch_log_group.png` | CW Logs Group nhận CloudTrail events |
-| SS-03 | `SS-03_metric_filter_created.png` | Metric Filter với Root login pattern |
-| SS-04 | `SS-04_alarm_created_ok_state.png` | Alarm ở state OK |
-| SS-05 | `SS-05_alarm_configuration_detail.png` | Chi tiết cấu hình alarm |
-| SS-06 | `SS-06_sns_topic_and_subscription.png` | SNS Topic + Subscription Confirmed |
-| SS-07 | `SS-07_confirmation_email.png` | Email xác nhận subscription |
-| SS-08 | `SS-08_root_login_simulation.png` | Bằng chứng put-metric-data (test) |
-| SS-09 | `SS-09_alarm_state_firing.png` | Alarm → ALARM state |
-| SS-10 | `SS-10_email_alert_received.png` | Email alert trong Gmail |
-| SS-11 | `SS-11_cloudtrail_event_detail.png` | CloudTrail Event (ConsoleLogin/put-metric) |
-| SS-12 | `SS-12_dashboard_overview.png` | Security Dashboard |
-| SS-13 | `SS-13_terraform_apply_success.png` | terraform apply thành công |
-| SS-14 | `SS-14_terraform_destroy_success.png` | terraform destroy thành công |
-
----
-
-## 💡 Lưu ý quan trọng
-
-- **KHÔNG login root thật** để test nếu không cần — dùng `put-metric-data` thay thế
-- CloudTrail có thể mất **5-15 phút** để bắt đầu stream log vào CloudWatch Logs
-- Alarm sẽ ở `INSUFFICIENT_DATA` cho đến khi có data point đầu tiên — đây là **bình thường**
-- File `terraform.tfvars` chứa email thật — **không commit** lên Git
+1. **Giảm thiểu sử dụng Root:** Tuyệt đối không tạo access keys cho tài khoản root. Sử dụng IAM Identity Center hoặc IAM Roles để phân quyền quản trị thay thế.
+2. **Loại bỏ nhiễu log (`AwsServiceEvent`):** Các dịch vụ nội bộ của AWS thỉnh thoảng sẽ gọi các lệnh dưới danh nghĩa root. Việc thêm điều kiện loại trừ `$.eventType != "AwsServiceEvent"` trong bộ lọc giúp ngăn ngừa việc Alarm bị trigger giả lập, bảo vệ đội ngũ quản trị khỏi hiện tượng mệt mỏi vì cảnh báo ảo (Alert Fatigue).
+3. **Cấu hình xử lý mất dữ liệu:** Đặt `treat_missing_data = "notBreaching"` vì việc không có dòng log nào xuất hiện tức là hệ thống đang an toàn, không cần báo động.

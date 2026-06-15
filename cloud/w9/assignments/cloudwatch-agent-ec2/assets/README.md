@@ -18,5 +18,3 @@
 | `SS-10_iam_role_policy_attached.png` | AWS Console IAM → Role `w9-cw-agent-lab-ec2-role` → Permissions = `CloudWatchAgentServerPolicy` | Prerequisite |
 | `SS-11_ssm_parameter_config.png` | AWS SSM Parameter Store → `/w9-lab/cloudwatch-agent/config` — nội dung JSON | Bước 2 |
 | `SS-12_agent_log_output.png` | Agent log file: `/opt/aws/amazon-cloudwatch-agent/logs/` — không có lỗi | Bước 4 |
-| `SS-13_terraform_apply_success.png` | Terminal: `terraform apply` → **Apply complete! 9 resources added** | IaC Bonus |
-| `SS-14_terraform_destroy_success.png` | Terminal: `terraform destroy` → **Destroy complete! 9 resources destroyed** | IaC Bonus |

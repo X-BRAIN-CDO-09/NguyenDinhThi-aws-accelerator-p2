@@ -18,5 +18,3 @@
 | SS-10_dashboard_cpu_spike.png | CPU spike trên dashboard |
 | SS-11_email_alarm_received.png | Email ALARM trong Gmail |
 | SS-12_email_ok_recovery.png | Email OK recovery |
-| SS-13_terraform_apply_success.png | terraform apply thành công |
-| SS-14_terraform_destroy_success.png | terraform destroy thành công |

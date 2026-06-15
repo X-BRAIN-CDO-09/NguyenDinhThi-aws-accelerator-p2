@@ -1,229 +1,149 @@
-# W9 Session 03 — CPU Alarm → Email Alert via SNS 🚨
+<p align="center">
+  <img src="https://img.icons8.com/color/96/000000/cloud-systems.png" alt="AWS DevOps Logo" width="80"/>
+</p>
 
-> **Bài lab hands-on:** Gửi email cảnh báo khi EC2 CPU > 80% liên tiếp 5 phút  
-> **Công nghệ:** AWS EC2 + CloudWatch + SNS + Terraform  
-> **Session:** 03 — Mastering AWS System Monitoring
+# <p align="center">🚨 CPU Alarm to Email Alert via SNS</p>
 
----
+### <p align="center">W9 Session 03 — Mastering AWS System Monitoring</p>
 
-## Kiến Trúc Tổng Quan
-
-```
-EC2 (t3.micro)
-    │
-    │ CPUUtilization metric (mỗi 1 phút)
-    ▼
-CloudWatch Alarm
-    │
-    │ Condition: CPU > 80% trong 5 phút liên tiếp
-    │ (1 out of 1 datapoints × 300s period)
-    ▼
-SNS Topic: w9-cpu-alarm-lab-cpu-alerts
-    │
-    ├──► Email Subscription → 📧 Your Gmail
-    │
-    └──► (Optional) OK state → 📧 Recovery alert
-```
+<p align="center">
+  <a href="https://aws.amazon.com"><img src="https://img.shields.io/badge/AWS-CLOUD-FF9900?style=for-the-badge&logo=amazon-aws&logoColor=white" alt="AWS"/></a>
+  <a href="https://terraform.io"><img src="https://img.shields.io/badge/TERRAFORM-IaC-7B42BC?style=for-the-badge&logo=terraform&logoColor=white" alt="Terraform"/></a>
+  <a href="https://aws.amazon.com/sns/"><img src="https://img.shields.io/badge/AWS-SNS-FF4F00?style=for-the-badge&logo=amazon-aws&logoColor=white" alt="SNS"/></a>
+  <a href="https://aws.amazon.com/cloudwatch/"><img src="https://img.shields.io/badge/CLOUDWATCH-ALARM-FF4F00?style=for-the-badge&logo=amazon-cloudwatch&logoColor=white" alt="CloudWatch"/></a>
+</p>
 
 ---
 
-## Cấu Trúc Thư Mục
+## 🎯 Vấn Đề Bài Lab Giải Quyết
 
+Trong hệ thống vận hành thực tế, việc theo dõi tài nguyên của máy chủ EC2 một cách thụ động là không đủ. Nếu CPU của máy chủ web tăng cao đột ngột (do quá tải traffic hoặc lỗi vòng lặp vô hạn trong code) mà không được xử lý kịp thời, hệ thống có thể bị treo và sập toàn diện.
+
+> [!IMPORTANT]
+> Bài lab này thiết lập cơ chế **giám sát tự động chủ động**: Tự động phát hiện khi chỉ số `CPUUtilization` vượt quá ngưỡng **80%** liên tiếp trong **5 phút** và gửi email cảnh báo khẩn cấp đến đội ngũ quản trị hệ thống qua **AWS SNS**.
+
+---
+
+## 📐 Kiến Trúc Hệ Thống (Architecture)
+
+```mermaid
+graph TD
+    subgraph "AWS Cloud"
+        EC2[EC2 Instance t3.micro] -->|CPUUtilization metric mỗi 1m| CloudWatch[CloudWatch Alarm]
+        CloudWatch -->|If CPU > 80% for 5m| SNS[SNS Topic: CPU-Alerts]
+    end
+    
+    SNS -->|Publish Notification| Email[Email: thihtktk@gmail.com]
+
+    classDef aws fill:#FF9900,stroke:#333,stroke-width:1px,color:#fff;
+    class EC2,CloudWatch,SNS aws;
 ```
+
+---
+
+## 📂 Cấu Trúc Thư Mục Dự Án
+
+```text
 cpu-alarm-sns-alert/
-├── README.md                       # File này
-├── EVIDENCE.md                     # Báo cáo nghiệm thu + screenshots
-├── STUDY_NOTES.md                  # Ghi chú kiến thức
-├── assets/                         # Screenshots evidence
-│   └── .gitkeep
-├── terraform/
-│   ├── main.tf                     # EC2 + SNS + CloudWatch Alarm + Dashboard
-│   ├── variables.tf                # Biến cấu hình
-│   ├── outputs.tf                  # Kết quả sau khi apply
-│   └── terraform.tfvars.example   # Template điền thông tin
-└── scripts/
-    ├── stress-cpu.sh               # Giả lập CPU cao → trigger alarm
-    └── verify-alarm.sh             # Kiểm tra trạng thái tất cả resources
+├── README.md                       # File hướng dẫn này
+├── EVIDENCE.md                     # Báo cáo nghiệm thu & screenshots
+├── STUDY_NOTES.md                  # Ghi chú kiến thức chiều sâu
+├── assets/                         # Chứa screenshots evidence
+│   └── README.md                   # Danh sách SS-01 → SS-12 cần chụp
+├── scripts/
+│   ├── stress-cpu.sh               # Script giả lập CPU cao (stress-ng)
+│   └── verify-alarm.sh             # Script xác thực trạng thái tài nguyên
+└── terraform/
+    ├── main.tf                     # IaC: EC2 + SNS Topic + CW Alarm + Dashboard
+    ├── variables.tf                # Các biến đầu vào
+    ├── outputs.tf                  # Các giá trị đầu ra
+    └── terraform.tfvars.example    # Template cấu hình biến
 ```
 
 ---
 
-## Yêu Cầu Trước Khi Chạy
+## 🛠️ Yêu Cầu Trước Khi Chạy (Prerequisites)
 
-| Công cụ | Kiểm tra |
-|---------|---------|
-| Terraform ≥ 1.3 | `terraform version` |
-| AWS CLI v2 | `aws --version` |
-| AWS credentials | `aws sts get-caller-identity` |
-| Email hợp lệ | Để nhận confirmation link |
+| Công cụ | Lệnh kiểm tra |
+| :--- | :--- |
+| **Terraform** (≥ 1.3) | `terraform version` |
+| **AWS CLI v2** | `aws --version` |
+| **AWS Credentials** | `aws sts get-caller-identity` |
+| **Email nhận cảnh báo** | Cần để kích hoạt link xác nhận của AWS |
 
 ---
 
-## Hướng Dẫn Chạy Lab
+## 🚀 Hướng Dẫn Các Bước Thực Hiện Lab
 
-### Bước 0: Chuẩn Bị
+### Bước 0: Chuẩn Bị File Cấu Hợp Biến
 
 ```bash
-# Clone/navigate vào folder lab
-cd cpu-alarm-sns-alert/terraform
+# Di chuyển vào thư mục terraform
+cd assignments/cpu-alarm-sns-alert/terraform
 
-# Copy file example → file thật
+# Sao chép tệp mẫu
 cp terraform.tfvars.example terraform.tfvars
-
-# Mở file và điền thông tin
-notepad terraform.tfvars   # Windows
-# hoặc
-nano terraform.tfvars      # Linux/Mac
 ```
 
-Điền vào `terraform.tfvars`:
+Mở tệp `terraform.tfvars` và điền địa chỉ email của bạn:
 ```hcl
-alert_email   = "your-email@gmail.com"   # Email nhận cảnh báo
-aws_region    = "ap-southeast-1"          # Singapore (hoặc region khác)
-key_pair_name = "my-key-pair"            # Tên key pair trong AWS (optional)
+alert_email   = "your-email@gmail.com"   # Email nhận cảnh báo khẩn cấp
+aws_region    = "ap-southeast-1"          # Vùng triển khai Singapore
 ```
 
----
+### Bước 1: Triển Khai Hạ Tầng
 
-### Bước 1: Create SNS Topic & Subscription
-
-> **Manual trên Console:** SNS → Create Topic (Standard) → Add Email Subscription → Confirm via email
-
-**Bằng Terraform** (tự động):
 ```bash
 terraform init
 terraform plan
 terraform apply -auto-approve
 ```
 
-**⚠️ QUAN TRỌNG:** Sau khi `apply` xong, kiểm tra email và click **"Confirm subscription"**!
+> [!WARNING]
+> **⚠️ BƯỚC BẮT BUỘC:** Sau khi terraform khởi tạo xong, hãy kiểm tra hòm thư Gmail của bạn. AWS sẽ gửi một email tiêu đề: `AWS Notification - Subscription Confirmation`. Hãy click vào nút **"Confirm subscription"** để kích hoạt kênh SNS nhận cảnh báo.
 
-```
-Subject: AWS Notification - Subscription Confirmation
-→ Click link "Confirm subscription"
-→ Status: PendingConfirmation → Confirmed
-```
+### Bước 2: Tìm Hiểu Thông Số Cấu Hình Alarm
 
----
+Hạ tầng tự động thiết lập một CloudWatch Alarm giám sát chỉ số `CPUUtilization` trên EC2 với cấu hình:
+* **Metric:** `CPUUtilization` (Namespace: `AWS/EC2`)
+* **Period:** `300 seconds` (5 phút)
+* **Evaluation Periods:** `1` (1 out of 1 datapoint)
+* **Threshold:** `80%` (Báo động khi CPU trung bình `>= 80%`)
+* **Comparison Operator:** `GreaterThanThreshold`
 
-### Bước 2: Create CloudWatch Alarm
+### Bước 3: Cấu Hình Trạng Thái Cảnh Báo (Alarm Actions)
 
-> **Manual trên Console:** CloudWatch → Alarms → Create Alarm → Select Metric → EC2 → Per-Instance → CPUUtilization
+| Trạng thái của Alarm | Hành động kích hoạt |
+| :---: | :--- |
+| **🔴 ALARM** | Gửi email thông báo sự cố qua SNS Topic |
+| **🟢 OK** | Gửi email khôi phục hệ thống qua SNS Topic (Recovery Notification) |
+| **⚪ INSUFFICIENT_DATA** | Không kích hoạt hành động gửi mail |
 
-**Terraform đã tạo tự động** với cấu hình:
-```hcl
-metric_name        = "CPUUtilization"
-namespace          = "AWS/EC2"
-period             = 300       # 5 phút
-evaluation_periods = 1
-threshold          = 80        # 80%
-comparison_operator = "GreaterThanThreshold"
-```
+### Bước 4: Chạy Giả Lập Tải CPU Để Kiểm Thử (Stress Test)
 
----
+1. Kết nối vào máy chủ EC2 (qua SSM Session Manager hoặc SSH).
+2. Chạy script tạo tải CPU lên 100% liên tục trong 6 phút để vượt ngưỡng Alarm:
+   ```bash
+   ~/stress-cpu.sh
+   ```
 
-### Bước 3: Configure Alarm Conditions
+### Bước 5: Theo Dõi Quá Trình Đổi Trạng Thái
+* Quan sát CloudWatch Dashboards hoặc Console Alarms. Trạng thái của Alarm sẽ chuyển dịch từ:
+  ➔ **OK** (màu xanh lá) ➔ **ALARM** (màu đỏ rực, gửi email cảnh báo sự cố) ➔ **OK** (sau khi stress test kết thúc, CPU hạ xuống và gửi email khôi phục).
 
-| Thông số | Giá trị |
-|----------|---------|
-| Condition | Greater than 80% |
-| Period | 5 minutes (300s) |
-| Evaluation | 1 out of 1 datapoints |
-| Statistic | Average |
-| Missing data | Treated as breaching |
-
----
-
-### Bước 4: Set SNS Notification Action
-
-| State | Action |
-|-------|--------|
-| **ALARM** | Gửi SNS → Email alert 🔥 |
-| **OK** | Gửi SNS → Recovery email ✅ |
-| INSUFFICIENT_DATA | Không notify |
-
----
-
-### Bước 5: Trigger Alarm (Test)
+### Bước 6: Dọn Dẹp Tài Nguyên
 
 ```bash
-# SSH vào EC2
-ssh -i your-key.pem ec2-user@<EC2_PUBLIC_IP>
-
-# Chạy stress test (6 phút)
-bash ~/stress-cpu.sh
-```
-
-Hoặc dùng **AWS Systems Manager Session Manager** (không cần SSH):
-```
-AWS Console → EC2 → Instance → Connect → Session Manager
-$ bash ~/stress-cpu.sh
-```
-
-**Timeline:**
-```
-T+0:00  → stress-ng bắt đầu, CPU = ~100%
-T+1:00  → CloudWatch nhận metric đầu tiên (monitoring = detailed)
-T+5:00  → Alarm evaluation: 1/1 periods > 80% → ALARM!
-T+5:30  → SNS gửi email
-T+6:00  → Bạn nhận email 📧
-T+6:30  → stress-ng kết thúc, CPU về 0%
-T+11:30 → CloudWatch: ALARM → OK → Recovery email 📧
-```
-
----
-
-### Bước 6: Kiểm Tra Trạng Thái
-
-```bash
-# Kiểm tra bằng script
-chmod +x scripts/verify-alarm.sh
-./scripts/verify-alarm.sh
-
-# Hoặc AWS CLI thủ công
-aws cloudwatch describe-alarms \
-  --alarm-names "w9-cpu-alarm-lab-cpu-high" \
-  --query "MetricAlarms[0].{State:StateValue,Threshold:Threshold}"
-```
-
----
-
-### Bước 7: Cleanup (Quan Trọng!)
-
-```bash
-cd terraform/
 terraform destroy -auto-approve
 ```
 
-> 💸 EC2 t3.micro: ~$0.0104/giờ. **Nhớ destroy sau khi xong lab!**
-
 ---
 
-## Xem Kết Quả Trực Quan
+## 📊 So Sánh Giám Sát Basic và Detailed Monitoring
 
-| Resource | URL |
-|----------|-----|
-| CloudWatch Dashboard | AWS Console → CloudWatch → Dashboards → w9-cpu-alarm-lab-dashboard |
-| Alarm Status | AWS Console → CloudWatch → Alarms |
-| SNS Topics | AWS Console → SNS → Topics |
-| EC2 Instance | AWS Console → EC2 → Instances |
-
----
-
-## Troubleshooting
-
-| Vấn đề | Nguyên nhân | Giải pháp |
-|--------|-------------|-----------|
-| Email không đến | Chưa confirm subscription | Kiểm tra spam, click confirm link |
-| Alarm ở INSUFFICIENT_DATA | EC2 mới tạo, chưa có metric | Đợi 5-10 phút |
-| CPU không lên cao | stress-ng chưa cài | `sudo dnf install stress-ng -y` |
-| Terraform init lỗi | Chưa cấu hình AWS credentials | `aws configure` |
-
----
-
-## Tài Liệu Tham Khảo
-
-- [AWS CloudWatch Alarms](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/AlarmThatSendsEmail.html)
-- [AWS SNS Email Notifications](https://docs.aws.amazon.com/sns/latest/dg/sns-email-notifications.html)
-- [Terraform aws_cloudwatch_metric_alarm](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm)
-- [EC2 Detailed Monitoring](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-cloudwatch-new.html)
+| Tiêu chí | Basic Monitoring (Mặc định) | Detailed Monitoring (Chi tiết) |
+| :--- | :--- | :--- |
+| **Tần suất đẩy metric** | Đẩy dữ liệu mỗi **5 phút** | Đẩy dữ liệu mỗi **1 phút** |
+| **Phí dịch vụ** | Hoàn toàn miễn phí | Có phí phụ thu rất nhỏ từ AWS |
+| **Phát hiện sự cố** | Độ trễ cao (Mất 5-10 phút để nhận biết) | Phản ứng nhanh (Phát hiện sự cố trong 1-2 phút) |
+| **Sự lựa chọn trong lab** | Không dùng | **✅ Sử dụng** (Để Alarm đánh giá chính xác tức thì) |
