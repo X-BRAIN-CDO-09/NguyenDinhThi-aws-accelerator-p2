@@ -1,0 +1,34 @@
+# alice: CRUD workload (deploy/pod/service) — only in namespace demo
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: developer
+  namespace: demo
+rules:
+  - apiGroups: ["", "apps"]
+    resources: ["deployments", "pods", "services"]
+    verbs: ["get", "list", "watch", "create", "update", "delete", "patch"]
+---
+# bob: view + exec pods across all namespaces
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: sre
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "pods/log", "pods/exec"]
+    verbs: ["get", "list", "watch", "create"]
+  - apiGroups: [""]
+    resources: ["namespaces", "nodes"]
+    verbs: ["get", "list", "watch"]
+---
+# carol: read-only across entire cluster
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: viewer
+rules:
+  - apiGroups: ["", "apps", "batch"]
+    resources: ["*"]
+    verbs: ["get", "list", "watch"]
+    

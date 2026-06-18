@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gatekeeper-constraints
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/thydynh03/NguyenDinhThi-aws-accelerator-p2
+    targetRevision: main
+    path: cloud/w10/lab-temp/gatekeeper/constraints
+  destination:
+    server: https://kubernetes.default.svc
+   kubectl wait --for=condition=Ready pod -l app.kubernetes.io/name=argocd-server -n argocd --timeout=120s
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
