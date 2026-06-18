@@ -15,3 +15,7 @@ spec:
       - gatekeeper-system
       - argocd
       - monitoring
+      - argo-rollouts
+      - eso-system
+      - cosign-system
+      - cert-manager
