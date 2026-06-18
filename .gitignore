@@ -32,3 +32,7 @@ terraform.rc
 # SSH Private Keys
 *.pem
 
+# Xbrain Learners
+xbrain-learners/
+
+
