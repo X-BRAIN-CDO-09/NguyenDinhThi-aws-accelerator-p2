@@ -1,0 +1,28 @@
+# CVE Exception Policy — ADR (Architectural Decision Record)
+# Every exception MUST have: cve_id, reason, expiry_date, owner, reviewed_by
+# No exception without expiry. Review before expiry or the build breaks.
+# Format: add one entry per CVE under "exceptions:" below.
+
+exceptions:
+  - cve_id: CVE-2024-XXXXX
+    affected_image: "ghcr.io/X-BRAIN-CDO-09/.../backend"
+    affected_package: "some-lib@1.2.3"
+    severity: HIGH
+    reason: >
+      No fix available upstream as of 2026-06-17. The vulnerable code path
+      (XML parser) is not reachable in this service — all input comes from
+      internal gRPC, not external HTTP. Risk accepted after security review.
+    mitigation: >
+      Network policy blocks external ingress to this pod. Will upgrade to
+      some-lib@2.x when released (expected Q3 2026).
+    expiry_date: "2026-09-30"   # CI will re-fail after this date — do not extend without re-review
+    owner: "thihtktk@gmail.com"
+    reviewed_by: "mentor-team"
+    reviewed_on: "2026-06-17"
+    jira_ticket: "W10-SEC-001"
+
+# Trivy .trivyignore usage:
+# Add CVE IDs from approved exceptions to .trivyignore in the repo root.
+# Example .trivyignore:
+#   CVE-2024-XXXXX
+# Remove from .trivyignore when expiry_date passes.
