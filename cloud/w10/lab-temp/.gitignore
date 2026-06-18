@@ -8,6 +8,13 @@ k8s-monitoring/alertmanager-config.yaml
 cosign.key
 cosign.exe
 
+# Terraform - NEVER commit private keys or state
+*.pem
+terraform/.terraform/
+terraform/terraform.tfstate
+terraform/terraform.tfstate.backup
+terraform/.terraform.lock.hcl
+
 # IDE
 .vscode/
 .idea/

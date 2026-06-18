@@ -12,7 +12,8 @@ variable "instance_type" {
 
 variable "key_name" {
   type        = string
-  description = "Name of the existing EC2 Key Pair in your AWS account (required for SSH)"
+  description = "Name cho EC2 Key Pair (tự động tạo bởi Terraform)"
+  default     = "w10-lab-key"
 }
 
 variable "my_ip" {

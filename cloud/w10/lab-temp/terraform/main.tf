@@ -5,6 +5,14 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
+    tls = {
+      source  = "hashicorp/tls"
+      version = "~> 4.0"
+    }
+    local = {
+      source  = "hashicorp/local"
+      version = "~> 2.0"
+    }
   }
 }
 
@@ -126,7 +134,32 @@ resource "aws_security_group" "lab_sg" {
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 6. Lookup latest Ubuntu 22.04 AMI (Canonical)
+# 6. Auto-generate SSH Key Pair (không cần tạo thủ công trên AWS Console)
+# ─────────────────────────────────────────────────────────────────────────────
+resource "tls_private_key" "lab_key" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
+
+resource "aws_key_pair" "lab_key" {
+  key_name   = var.key_name
+  public_key = tls_private_key.lab_key.public_key_openssh
+
+  tags = {
+    Name    = var.key_name
+    Project = "w10-security-lab"
+  }
+}
+
+# Lưu private key ra file .pem local (dùng để SSH)
+resource "local_file" "private_key_pem" {
+  content         = tls_private_key.lab_key.private_key_pem
+  filename        = "${path.module}/${var.key_name}.pem"
+  file_permission = "0600"
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 7. Lookup latest Ubuntu 22.04 AMI (Canonical)
 # ─────────────────────────────────────────────────────────────────────────────
 data "aws_ami" "ubuntu" {
   most_recent = true
@@ -144,14 +177,14 @@ data "aws_ami" "ubuntu" {
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 7. EC2 Instance — Ubuntu 22.04, t3.medium, 20GB gp3
+# 8. EC2 Instance — Ubuntu 22.04, t3.medium, 20GB gp3
 # ─────────────────────────────────────────────────────────────────────────────
 resource "aws_instance" "security_lab_node" {
   ami                    = data.aws_ami.ubuntu.id
   instance_type          = var.instance_type
   subnet_id              = aws_subnet.public_subnet.id
   vpc_security_group_ids = [aws_security_group.lab_sg.id]
-  key_name               = var.key_name
+  key_name               = aws_key_pair.lab_key.key_name
 
   root_block_device {
     volume_size           = var.volume_size
