@@ -177,7 +177,53 @@ data "aws_ami" "ubuntu" {
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 8. EC2 Instance — Ubuntu 22.04, t3.medium, 20GB gp3
+# 8. IAM Role cho EC2 — truy cập Secrets Manager không cần static credentials
+# ─────────────────────────────────────────────────────────────────────────────
+resource "aws_iam_role" "ec2_role" {
+  name = "security-lab-ec2-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action    = "sts:AssumeRole"
+      Effect    = "Allow"
+      Principal = { Service = "ec2.amazonaws.com" }
+    }]
+  })
+
+  tags = {
+    Name    = "security-lab-ec2-role"
+    Project = "w10-security-lab"
+  }
+}
+
+# Policy: cho phép đọc Secrets Manager
+resource "aws_iam_role_policy" "secrets_manager_policy" {
+  name = "secrets-manager-read"
+  role = aws_iam_role.ec2_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = [
+        "secretsmanager:GetSecretValue",
+        "secretsmanager:DescribeSecret",
+        "secretsmanager:ListSecrets"
+      ]
+      Resource = "arn:aws:secretsmanager:${var.aws_region}:*:secret:prod/*"
+    }]
+  })
+}
+
+# Instance Profile — gắn IAM Role vào EC2
+resource "aws_iam_instance_profile" "ec2_profile" {
+  name = "security-lab-ec2-profile"
+  role = aws_iam_role.ec2_role.name
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 9. EC2 Instance — Ubuntu 22.04, t3.large, 20GB gp3
 # ─────────────────────────────────────────────────────────────────────────────
 resource "aws_instance" "security_lab_node" {
   ami                    = data.aws_ami.ubuntu.id
@@ -185,6 +231,7 @@ resource "aws_instance" "security_lab_node" {
   subnet_id              = aws_subnet.public_subnet.id
   vpc_security_group_ids = [aws_security_group.lab_sg.id]
   key_name               = aws_key_pair.lab_key.key_name
+  iam_instance_profile   = aws_iam_instance_profile.ec2_profile.name
 
   root_block_device {
     volume_size           = var.volume_size
@@ -198,3 +245,4 @@ resource "aws_instance" "security_lab_node" {
     Owner   = "NguyenDinhThi"
   }
 }
+
