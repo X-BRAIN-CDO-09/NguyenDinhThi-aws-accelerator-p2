@@ -176,8 +176,6 @@ demo         externalsecret.external-secrets.io/db-creds                 aws-sto
 monitoring   externalsecret.external-secrets.io/alertmanager-email-eso   aws-store-monitoring   1m                 SecretSynced   True
 ```
 
-![SS-02: SecretStore và ExternalSecret ở trạng thái Valid và SecretSynced thành công](assets/SS-02_eso_status.png)
-
 #### 3.2 Kubernetes Secrets được tạo tự động bởi ESO
 *   Secret mật khẩu Database (`db-secret` trong namespace `demo`):
 ```bash
@@ -193,7 +191,7 @@ $ kubectl get secret alertmanager-email -n monitoring -o yaml | grep "password:"
 #### 3.3 Alertmanager SMTP Email Notification
 Alertmanager nhận diện cấu hình SMTP Gmail được lấy từ AWS Secrets Manager, gửi thông báo trực tiếp tới địa chỉ `thihtktk@gmail.com`.
 
-![SS-03: Email cảnh báo thực tế gửi từ Alertmanager đến hộp thư Gmail của học viên](assets/SS-03_gmail_alertmanager_received.png)
+![SS-02: Email cảnh báo thực tế gửi từ Alertmanager đến hộp thư Gmail của học viên](assets/SS-02_gmail_alertmanager_received.png)
 
 ---
 
@@ -231,8 +229,6 @@ NAME                            READY   STATUS    RESTARTS   AGE   IP           
 payments-api-7ffff4757c-kkg7m   1/1     Running   0          52m   10.244.0.35   minikube
 payments-api-7ffff4757c-kl2f5   1/1     Running   0          52m   10.244.0.36   minikube
 ```
-
-![SS-04: Các pod của payments-api running trong payments namespace](assets/SS-04_payments_pods_running.png)
 
 #### 5.2 Network Policies cô lập mạng lưới
 ```bash
