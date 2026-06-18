@@ -9,4 +9,4 @@ spec:
       - apiGroups: [""]
         kinds: ["Pod"]
   parameters:
-    allowedRegistry: "ghcr.io/thydynh03/"
+    allowedRegistry: "ghcr.io/X-BRAIN-CDO-09/"

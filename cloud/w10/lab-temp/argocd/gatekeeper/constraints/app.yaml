@@ -8,12 +8,12 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/thydynh03/NguyenDinhThi-aws-accelerator-p2
+    repoURL: https://github.com/X-BRAIN-CDO-09/NguyenDinhThi-aws-accelerator-p2.git
     targetRevision: main
-    path: cloud/w10/lab-temp/gatekeeper/constraints
+    path: cloud/w10/lab-temp/argocd/gatekeeper/constraints
   destination:
     server: https://kubernetes.default.svc
-   kubectl wait --for=condition=Ready pod -l app.kubernetes.io/name=argocd-server -n argocd --timeout=120s
+    namespace: gatekeeper-system
   syncPolicy:
     automated:
       prune: true
