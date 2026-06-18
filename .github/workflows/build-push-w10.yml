@@ -61,22 +61,13 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-      - name: Update rollout.yaml with new version
+      - name: Print image version summary
         run: |
-          sed -i "s|image: ghcr.io/.*/w10-api:.*|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.semver.outputs.version }}|g" cloud/w10/lab-temp/app-api/rollout.yaml
-          sed -i "s|value: \"v.*\"|value: \"v${{ steps.semver.outputs.version }}\"|g" cloud/w10/lab-temp/app-api/rollout.yaml
-
-      - name: Commit and push version update
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add cloud/w10/lab-temp/app-api/rollout.yaml
-          if git diff --staged --quiet; then
-            echo "No changes to commit"
-          else
-            git commit -m "chore: bump w10-api version to v${{ steps.semver.outputs.version }}"
-            git push
-          fi
+          echo "✅ Image built and pushed successfully!"
+          echo "Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.semver.outputs.version }}"
+          echo ""
+          echo "Update rollout.yaml manually:"
+          echo "  image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.semver.outputs.version }}"
 
       - name: Create git tag
         run: |
