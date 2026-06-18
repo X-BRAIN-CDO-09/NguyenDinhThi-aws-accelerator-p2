@@ -1,0 +1,48 @@
+---
+# ClusterRole: sre — cross-namespace visibility + incident response actions
+# Apply: kubectl apply -f sre-clusterrole.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: sre
+rules:
+  # Read everything cluster-wide
+  - apiGroups: ["*"]
+    resources: ["*"]
+    verbs: [get, list, watch]
+  # Manage workloads in any namespace (restart, rollout)
+  - apiGroups: [apps]
+    resources: [deployments, statefulsets, daemonsets]
+    verbs: [update, patch]
+  - apiGroups: [argoproj.io]
+    resources: [rollouts]
+    verbs: [update, patch]
+  # Exec into pods for debugging
+  - apiGroups: [""]
+    resources: [pods/exec]
+    verbs: [create]
+  # Port-forward for local access during incidents
+  - apiGroups: [""]
+    resources: [pods/portforward]
+    verbs: [create]
+  # Create events for incident annotation
+  - apiGroups: [""]
+    resources: [events]
+    verbs: [create, patch]
+  # Delete pods to force restart (but not deployments)
+  - apiGroups: [""]
+    resources: [pods]
+    verbs: [delete]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: sre-binding
+subjects:
+  - kind: Group
+    name: sre-team
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: sre
+  apiGroup: rbac.authorization.k8s.io

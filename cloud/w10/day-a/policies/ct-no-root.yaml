@@ -1,0 +1,37 @@
+---
+# ConstraintTemplate: K8sNoRootContainer
+# Requires all containers to set runAsNonRoot: true
+# Works with: OPA Gatekeeper >= 3.x
+apiVersion: templates.gatekeeper.sh/v1
+kind: ConstraintTemplate
+metadata:
+  name: k8snorootcontainer
+  annotations:
+    description: Rejects pods where any container can run as root (UID 0)
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sNoRootContainer
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package k8snorootcontainer
+
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.containers[_]
+          not container.securityContext.runAsNonRoot == true
+          msg := sprintf("Container '%v' must set securityContext.runAsNonRoot: true", [container.name])
+        }
+
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.initContainers[_]
+          not container.securityContext.runAsNonRoot == true
+          msg := sprintf("InitContainer '%v' must set securityContext.runAsNonRoot: true", [container.name])
+        }
+
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.containers[_]
+          container.securityContext.runAsUser == 0
+          msg := sprintf("Container '%v' must not run as UID 0", [container.name])
+        }

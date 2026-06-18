@@ -1,0 +1,21 @@
+---
+# Constraint: audit mode — log violations without blocking
+# audit mode: shows violations in `kubectl get k8srequiredlabels` STATUS column
+# Switch to "deny" when ready to enforce hard
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sRequiredLabels
+metadata:
+  name: require-app-env-labels
+spec:
+  enforcementAction: audit
+  match:
+    kinds:
+      - apiGroups: [apps]
+        kinds: [Deployment, StatefulSet]
+      - apiGroups: [""]
+        kinds: [Pod]
+    namespaces: [app]
+  parameters:
+    labels:
+      - app
+      - env

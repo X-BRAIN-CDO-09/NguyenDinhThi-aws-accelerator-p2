@@ -1,0 +1,36 @@
+---
+# Role: developer — namespace-scoped, least privilege
+# Apply: kubectl apply -f developer-role.yaml -n app
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: developer
+  namespace: app
+rules:
+  - apiGroups: [""]
+    resources: [pods, pods/log]
+    verbs: [get, list, watch]
+  - apiGroups: [apps]
+    resources: [deployments, replicasets]
+    verbs: [get, list, watch, create, update, patch]
+  - apiGroups: [""]
+    resources: [configmaps]
+    verbs: [get, list, watch]
+  - apiGroups: [""]
+    resources: [services]
+    verbs: [get, list, watch]
+---
+# Bind the role to a user "alice" (replace with actual user/group)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: developer-binding
+  namespace: app
+subjects:
+  - kind: User
+    name: alice
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: developer
+  apiGroup: rbac.authorization.k8s.io

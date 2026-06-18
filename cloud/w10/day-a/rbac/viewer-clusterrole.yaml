@@ -1,0 +1,46 @@
+---
+# ClusterRole: viewer — read-only, cluster-wide, no write/exec
+# Suitable for: management, audit, dashboards, external teams
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: viewer
+rules:
+  - apiGroups: ["", apps, batch, autoscaling, argoproj.io, monitoring.coreos.com]
+    resources:
+      - pods
+      - pods/log
+      - deployments
+      - replicasets
+      - statefulsets
+      - daemonsets
+      - services
+      - endpoints
+      - configmaps
+      - namespaces
+      - nodes
+      - persistentvolumeclaims
+      - jobs
+      - cronjobs
+      - horizontalpodautoscalers
+      - rollouts
+      - prometheusrules
+      - servicemonitors
+    verbs: [get, list, watch]
+  # Allow viewing events for debugging
+  - apiGroups: [""]
+    resources: [events]
+    verbs: [get, list, watch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: viewer-binding
+subjects:
+  - kind: Group
+    name: readonly-users
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: viewer
+  apiGroup: rbac.authorization.k8s.io

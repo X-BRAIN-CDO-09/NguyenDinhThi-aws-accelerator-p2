@@ -1,0 +1,16 @@
+---
+# Constraint: enforce K8sNoRootContainer in namespace "app"
+# enforcementAction: deny  → blocks the pod at admission (not just audit)
+# Apply AFTER ct-no-root.yaml is ready (kubectl get constrainttemplate k8snorootcontainer)
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sNoRootContainer
+metadata:
+  name: no-root-container-app
+spec:
+  enforcementAction: deny
+  match:
+    kinds:
+      - apiGroups: [""]
+        kinds: [Pod]
+    namespaces: [app]
+    excludedNamespaces: [kube-system, gatekeeper-system, cert-manager]

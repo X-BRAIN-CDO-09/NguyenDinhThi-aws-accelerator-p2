@@ -1,0 +1,43 @@
+---
+# ValidatingAdmissionPolicy (native K8s 1.30+)
+# No webhook required — uses CEL expressions evaluated in-process
+# Blocks pods that request privileged: true
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: no-privileged-containers
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: [v1]
+        operations: [CREATE, UPDATE]
+        resources: [pods]
+  validations:
+    - expression: >
+        object.spec.containers.all(c,
+          !has(c.securityContext) ||
+          !has(c.securityContext.privileged) ||
+          c.securityContext.privileged == false
+        )
+      message: "Privileged containers are not allowed. Set securityContext.privileged: false."
+    - expression: >
+        !has(object.spec.hostNetwork) || object.spec.hostNetwork == false
+      message: "hostNetwork is not allowed."
+    - expression: >
+        !has(object.spec.hostPID) || object.spec.hostPID == false
+      message: "hostPID is not allowed."
+---
+# Bind the policy to namespace "app"
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: no-privileged-containers-binding
+spec:
+  policyName: no-privileged-containers
+  validationActions: [Deny]
+  matchResources:
+    namespaceSelector:
+      matchLabels:
+        security-policy: enforced
