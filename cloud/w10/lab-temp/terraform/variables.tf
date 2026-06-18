@@ -6,8 +6,8 @@ variable "aws_region" {
 
 variable "instance_type" {
   type        = string
-  description = "EC2 Instance type — t3.medium (2 vCPU, 4GB) is recommended minimum"
-  default     = "t3.medium"
+  description = "EC2 Instance type — t3.large (2 vCPU, 8GB) recommended for full stack"
+  default     = "t3.large"
 }
 
 variable "key_name" {
