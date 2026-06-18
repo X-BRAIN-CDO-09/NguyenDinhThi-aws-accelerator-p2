@@ -18,6 +18,8 @@ spec:
     metadata:
       labels:
         app: api
+      annotations:
+        restart-date: "2026-06-19"
     spec:
       containers:
       - name: api
