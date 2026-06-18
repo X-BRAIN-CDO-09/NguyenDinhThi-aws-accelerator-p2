@@ -1,0 +1,28 @@
+# ArgoCD App: Deploy Payments workload application
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: payments-app
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/X-BRAIN-CDO-09/NguyenDinhThi-aws-accelerator-p2.git
+    path: cloud/w10/lab-temp/apps/payments
+    targetRevision: main
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: payments
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - ServerSideApply=true
+  ignoreDifferences:
+  - group: apps
+    kind: Deployment
+    jsonPointers:
+    - /spec/template/spec/containers/0/image

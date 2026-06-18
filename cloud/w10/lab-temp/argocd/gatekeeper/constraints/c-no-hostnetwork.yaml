@@ -19,3 +19,4 @@ spec:
       - eso-system
       - cosign-system
       - cert-manager
+      - payments
