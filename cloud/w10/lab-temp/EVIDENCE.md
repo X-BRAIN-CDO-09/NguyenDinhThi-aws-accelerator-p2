@@ -101,7 +101,7 @@ Bảo đảm không chạy mã độc hoặc image không rõ nguồn gốc tron
 #### 1.1 Trạng thái đồng bộ của ArgoCD Dashboard
 Toàn bộ các ứng dụng được phân phối và tự động đồng bộ theo đúng sync-wave, đảm bảo không xảy ra race condition.
 
-![SS-01: Giao diện ArgoCD Dashboard hiển thị 16 applications - tất cả Synced và Healthy](assets/SS-01_argocd_dashboard_all_apps.png)
+![SS-01: Giao diện ArgoCD Dashboard hiển thị 16 applications - tất cả Synced và Healthy](assets/SS-01.png)
 
 #### 1.2 Trạng thái của các child application trên cluster
 ```bash
@@ -191,7 +191,7 @@ $ kubectl get secret alertmanager-email -n monitoring -o yaml | grep "password:"
 #### 3.3 Alertmanager SMTP Email Notification
 Alertmanager nhận diện cấu hình SMTP Gmail được lấy từ AWS Secrets Manager, gửi thông báo trực tiếp tới địa chỉ `thihtktk@gmail.com`.
 
-![SS-02: Email cảnh báo thực tế gửi từ Alertmanager đến hộp thư Gmail của học viên](assets/SS-02_gmail_alertmanager_received.png)
+![SS-02: Email cảnh báo thực tế gửi từ Alertmanager đến hộp thư Gmail của học viên](assets/SS-02.png)
 
 ---
 
