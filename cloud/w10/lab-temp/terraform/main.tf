@@ -233,6 +233,12 @@ resource "aws_instance" "security_lab_node" {
   key_name               = aws_key_pair.lab_key.key_name
   iam_instance_profile   = aws_iam_instance_profile.ec2_profile.name
 
+  metadata_options {
+    http_endpoint               = "enabled"
+    http_put_response_hop_limit = 2
+    http_tokens                 = "optional"
+  }
+
   root_block_device {
     volume_size           = var.volume_size
     volume_type           = "gp3"
