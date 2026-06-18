@@ -11,4 +11,4 @@ spec:
     namespaces:
       - demo
   parameters:
-    allowedRegistry: "ghcr.io/X-BRAIN-CDO-09/"
+    allowedRegistry: "ghcr.io/x-brain-cdo-09/"
