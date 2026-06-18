@@ -4,7 +4,7 @@ metadata:
   name: gatekeeper
   namespace: argocd
   annotations:
-    argocdcd.argoproj.io/sync-wave: "-10"
+    argocd.argoproj.io/sync-wave: "-10"
 spec:
   project: default
   source:
@@ -17,7 +17,7 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: gatekeeper
-  syncpolicy:
+  syncPolicy:
     automated:
       prune: true
       selfHeal: true
