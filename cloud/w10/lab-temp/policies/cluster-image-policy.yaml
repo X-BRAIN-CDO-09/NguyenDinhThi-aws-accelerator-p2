@@ -5,10 +5,9 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "1"
 spec:
-  # Enhanced: start with "warn" mode — switch to "enforce" after verifying CI pipeline signs images
-  mode: warn
+  mode: enforce
   images:
-  - glob: "ghcr.io/x-brain-cdo-09/nguyendinhthi-aws-accelerator-p2*"
+  - glob: "docker.io/library/nginx*"
   authorities:
   - name: authority-0
     key:
