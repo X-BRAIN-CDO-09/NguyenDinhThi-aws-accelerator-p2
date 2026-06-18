@@ -1,0 +1,44 @@
+---
+# Chaos Mesh: PodChaos — randomly kill one backend pod every 5 minutes
+# Purpose: verify ArgoCD self-heal + K8s Deployment reconcile works correctly
+# Prereq: Chaos Mesh installed (helm install chaos-mesh chaos-mesh/chaos-mesh -n chaos-testing)
+# Run: kubectl apply -f chaos-test.yaml
+# Stop: kubectl delete -f chaos-test.yaml
+apiVersion: chaos-mesh.org/v1alpha1
+kind: PodChaos
+metadata:
+  name: backend-pod-kill
+  namespace: chaos-testing
+spec:
+  action: pod-kill
+  mode: one           # Kill exactly 1 pod per round
+  selector:
+    namespaces: [app]
+    labelSelectors:
+      app: backend
+  scheduler:
+    cron: "@every 5m"  # Fire every 5 minutes
+  duration: 30s        # Each chaos injection lasts 30 seconds
+---
+# NetworkChaos: simulate network partition between frontend and backend (60s)
+# Validates that frontend degrades gracefully (fallback UI, not crash)
+apiVersion: chaos-mesh.org/v1alpha1
+kind: NetworkChaos
+metadata:
+  name: frontend-backend-partition
+  namespace: chaos-testing
+spec:
+  action: partition
+  mode: one
+  selector:
+    namespaces: [app]
+    labelSelectors:
+      app: frontend
+  direction: to
+  target:
+    mode: all
+    selector:
+      namespaces: [app]
+      labelSelectors:
+        app: backend
+  duration: 60s

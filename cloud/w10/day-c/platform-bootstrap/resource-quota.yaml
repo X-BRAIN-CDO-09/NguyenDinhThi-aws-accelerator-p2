@@ -1,0 +1,33 @@
+---
+# ResourceQuota: limits total resource consumption per namespace
+# Prevents one team/app from starving other workloads in a shared cluster
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: app-quota
+  namespace: app
+spec:
+  hard:
+    pods: "20"
+    requests.cpu: "4"
+    requests.memory: 8Gi
+    limits.cpu: "8"
+    limits.memory: 16Gi
+    persistentvolumeclaims: "10"
+    services: "10"
+    secrets: "20"
+    configmaps: "20"
+---
+# Separate quota for dev namespace — more lenient
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: dev-quota
+  namespace: dev
+spec:
+  hard:
+    pods: "10"
+    requests.cpu: "2"
+    requests.memory: 4Gi
+    limits.cpu: "4"
+    limits.memory: 8Gi
