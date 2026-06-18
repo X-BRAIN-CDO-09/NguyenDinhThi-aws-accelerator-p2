@@ -30,7 +30,7 @@ jobs:
         id: semver
         uses: paulhatch/semantic-version@v5.4.0
         with:
-          tag_prefix: "v"
+          tag_prefix: "w10-v"
           major_pattern: "(BREAKING CHANGE:|!:)"
           minor_pattern: "^feat"
           version_format: "${major}.${minor}.${patch}"
