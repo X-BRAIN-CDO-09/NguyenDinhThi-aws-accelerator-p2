@@ -1,0 +1,19 @@
+apiVersion: policy.sigstore.dev/v1beta1
+kind: ClusterImagePolicy
+metadata:
+  name: image-signature-policy
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  # Enhanced: start with "warn" mode — switch to "enforce" after verifying CI pipeline signs images
+  mode: warn
+  images:
+  - glob: "ghcr.io/x-brain-cdo-09/nguyendinhthi-aws-accelerator-p2*"
+  authorities:
+  - name: authority-0
+    key:
+      data: |
+        -----BEGIN PUBLIC KEY-----
+        MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE95AAuTY83Nrf/FI+Yti+3xOp3cNl
+        JyklSH+0Cy6yC0V+f+cdBnXeDXaGqPn5XbavMpq1eedEd0FUV+xjSW1V5Q==
+        -----END PUBLIC KEY-----

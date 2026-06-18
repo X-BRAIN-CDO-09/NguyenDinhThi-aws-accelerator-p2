@@ -1,4 +1,8 @@
-# alice: CRUD workload (deploy/pod/service) — only in namespace demo
+# ─────────────────────────────────────────────────────────────────────────────
+# alice: developer — CRUD workloads in namespace demo
+# Enhanced: added batch (Jobs/CronJobs), argoproj.io (Rollouts),
+#           pods/log, pods/exec, replicasets, statefulsets, daemonsets
+# ─────────────────────────────────────────────────────────────────────────────
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -6,10 +10,37 @@ metadata:
   namespace: demo
 rules:
   - apiGroups: ["", "apps"]
-    resources: ["deployments", "pods", "services"]
+    resources:
+      - deployments
+      - pods
+      - services
+      - replicasets
+      - statefulsets
+      - daemonsets
+    verbs: ["get", "list", "watch", "create", "update", "delete", "patch"]
+  - apiGroups: [""]
+    resources:
+      - pods/log
+      - pods/exec
+    verbs: ["get", "create"]
+  - apiGroups: ["batch"]
+    resources:
+      - jobs
+      - cronjobs
+    verbs: ["get", "list", "watch", "create", "update", "delete", "patch"]
+  - apiGroups: ["argoproj.io"]
+    resources:
+      - rollouts
+      - rollouts/status
+      - rollouts/scale
+      - analysisruns
+      - analysistemplates
+      - experiments
     verbs: ["get", "list", "watch", "create", "update", "delete", "patch"]
 ---
-# bob: view + exec + troubleshoot pods across all namespaces
+# ─────────────────────────────────────────────────────────────────────────────
+# bob: SRE — view + exec + troubleshoot pods cluster-wide
+# ─────────────────────────────────────────────────────────────────────────────
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -25,10 +56,15 @@ rules:
     resources: ["pods/log"]
     verbs: ["get"]
   - apiGroups: [""]
-    resources: ["namespaces", "nodes"]
+    resources: ["namespaces", "nodes", "services", "endpoints", "configmaps"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "replicasets", "statefulsets", "daemonsets"]
     verbs: ["get", "list", "watch"]
 ---
-# carol: read-only across entire cluster
+# ─────────────────────────────────────────────────────────────────────────────
+# carol: viewer — read-only across entire cluster
+# ─────────────────────────────────────────────────────────────────────────────
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
