@@ -8,5 +8,7 @@ spec:
     kinds:
       - apiGroups: [""]
         kinds: ["Pod"]
+    namespaces:
+      - demo
   parameters:
     allowedRegistry: "ghcr.io/X-BRAIN-CDO-09/"

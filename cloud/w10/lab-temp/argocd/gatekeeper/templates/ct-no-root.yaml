@@ -12,6 +12,10 @@ spec:
       rego: |
         package k8snoroot
         violation[{"msg": msg}] {
+          input.review.object.spec.securityContext.runAsUser == 0
+          msg := "Pod securityContext must not run as root (runAsUser: 0)"
+        }
+        violation[{"msg": msg}] {
           container := input.review.object.spec.containers[_]
           container.securityContext.runAsUser == 0
           msg := sprintf("Container '%v' must not run as root (runAsUser: 0)", [container.name])
