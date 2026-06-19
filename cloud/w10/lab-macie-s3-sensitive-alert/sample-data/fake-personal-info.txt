@@ -1,0 +1,23 @@
+# Fake Personal Information (PII) — Test Data for Amazon Macie
+# WARNING: This file contains FAKE data generated for lab testing purposes only
+# DO NOT use this data for any real purpose
+
+# --- Fake CMND / CCCD ---
+Name: Nguyen Van A
+ID Number: 079123456789
+Date of Birth: 01/01/1990
+Address: 123 Le Loi, Quan 1, Ho Chi Minh City
+
+# --- Fake Email & Password (leaked credentials simulation) ---
+email: test.user@example.com
+password: P@ssw0rd123!
+api_key: AKIAIOSFODNN7EXAMPLE
+aws_secret: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+
+# --- Fake Phone Numbers ---
+Phone: +84-912-345-678
+Phone: +84-938-765-432
+
+# --- Fake Bank Account ---
+Account Number: 1234567890123456
+Routing Number: 021000021
