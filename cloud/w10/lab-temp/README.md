@@ -28,7 +28,8 @@ Tài liệu này giải thích thiết kế cô lập an toàn cho **Tenant `pay
 Toàn bộ hạ tầng và ứng dụng của team `payments` được quản lý qua GitOps:
 * **Hạ tầng (`tenants/payments/`):**
   * [ns.yaml](ns.yaml): Tạo namespace `payments` có đánh nhãn quét chữ ký số.
-  * [rbac.yaml](rbac.yaml): Phân quyền hạn chế cho `payments-dev` (chỉ thao tác workload, không được xem secrets/rolebindings).
+  * [role.yaml](role.yaml): Định nghĩa quyền hạn chế cho `payments-dev` (chỉ thao tác workload, không được xem secrets/rolebindings).
+  * [rolebinding.yaml](rolebinding.yaml): Gán quyền cho user `payments-dev`.
   * [quota.yaml](quota.yaml): Giới hạn tài nguyên tối đa (CPU/Memory) của namespace `payments`.
   * [limitrange.yaml](limitrange.yaml): Thiết lập cấu hình CPU/Memory mặc định cho các Pod không khai báo limit.
   * [netpol.yaml](netpol.yaml): Cấu hình NetworkPolicy cách ly mạng (chặn tất cả Ingress từ ngoài vào và chỉ cho phép Egress nội bộ + DNS).
