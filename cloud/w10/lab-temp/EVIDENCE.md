@@ -141,19 +141,57 @@ root                     Synced        Healthy
 
 ### PHẦN 2 — Kubernetes Workloads & RBAC Hardening
 
-#### 2.1 Kiểm tra phân quyền truy cập của User `alice`
+#### 2.1 Kiểm tra phân quyền truy cập của các User (alice, bob, carol) bằng `--as`
+Sử dụng tham số `--as` để giả lập các Service Account đã được phân quyền qua RBAC:
+
 ```bash
+# ── USER 1: Alice (Developer - chỉ được làm việc trong namespace demo) ──
+
 # 1. Xác nhận Alice có quyền quản trị Deployments trong demo namespace
-$ kubectl auth can-i create deployments --as=alice -n demo
+$ kubectl auth can-i create deployments --as=system:serviceaccount:demo:alice -n demo
 yes
 
 # 2. Xác nhận Alice BỊ CHẶN truy cập vào Secrets
-$ kubectl auth can-i get secrets --as=alice -n demo
+$ kubectl auth can-i get secrets --as=system:serviceaccount:demo:alice -n demo
 no
 
 # 3. Xác nhận Alice BỊ CHẶN truy cập tài nguyên Cluster (Nodes)
-$ kubectl auth can-i get nodes --as=alice
+$ kubectl auth can-i get nodes --as=system:serviceaccount:demo:alice
 Warning: resource 'nodes' is not namespace scoped
+no
+
+# 4. Xác nhận Alice BỊ CHẶN tạo deployments ở namespace khác
+$ kubectl auth can-i create deployments --as=system:serviceaccount:demo:alice -n kube-system
+no
+
+
+# ── USER 2: Bob (SRE - xem logs/exec mọi namespace, không được thay đổi Node) ──
+
+# 1. Xác nhận Bob có quyền get Pod ở bất kỳ namespace nào
+$ kubectl auth can-i get pods -A --as=system:serviceaccount:demo:bob
+yes
+
+# 2. Xác nhận Bob có quyền exec vào Pod
+$ kubectl auth can-i create pods/exec -n demo --as=system:serviceaccount:demo:bob
+yes
+
+# 3. Xác nhận Bob BỊ CHẶN khi cố xóa Node
+$ kubectl auth can-i delete nodes --as=system:serviceaccount:demo:bob
+no
+
+
+# ── USER 3: Carol (Viewer - chỉ xem toàn cluster, không được thay đổi gì) ──
+
+# 1. Xác nhận Carol có quyền xem cấu hình Pod ở mọi namespace
+$ kubectl auth can-i get pods -A --as=system:serviceaccount:demo:carol
+yes
+
+# 2. Xác nhận Carol BỊ CHẶN khi cố tạo Pod mới
+$ kubectl auth can-i create pods -n demo --as=system:serviceaccount:demo:carol
+no
+
+# 3. Xác nhận Carol BỊ CHẶN khi cố xóa Node
+$ kubectl auth can-i delete nodes --as=system:serviceaccount:demo:carol
 no
 ```
 
@@ -203,6 +241,26 @@ $ kubectl get secret alertmanager-email -n monitoring -o yaml | grep "password:"
 Alertmanager nhận diện cấu hình SMTP Gmail được lấy từ AWS Secrets Manager, gửi thông báo trực tiếp tới địa chỉ `thihtktk@gmail.com`.
 
 ![SS-02: Email cảnh báo thực tế gửi từ Alertmanager đến hộp thư Gmail của học viên](assets/SS-02.png)
+
+#### 3.4 Kiểm nghiệm tính năng Secret Auto-Rotation (Tự động xoay vòng khóa)
+Để kiểm thử tính năng tự động xoay vòng khóa, chúng ta cập nhật giá trị secret trên AWS Secrets Manager và kiểm tra xem K8s Secret có tự động cập nhật mà không cần can thiệp thủ công hay không:
+
+```bash
+# 1. Cập nhật giá trị secret mới trên AWS Secrets Manager
+$ aws secretsmanager update-secret --secret-id prod/db/password --secret-string "NewPassword456!" --region ap-southeast-1
+{
+    "ARN": "arn:aws:secretsmanager:ap-southeast-1:123456789012:secret:prod/db/password-xxxxxx",
+    "Name": "prod/db/password",
+    "VersionId": "48805fbb-5742-4fcf-bc01-e28a5cf05118"
+}
+
+# 2. Đợi 10 - 15 giây (refreshInterval được cấu hình là 10s trong ExternalSecret)
+$ sleep 15
+
+# 3. Kiểm tra giá trị K8s Secret cục bộ đã được tự động cập nhật
+$ kubectl get secret db-secret -n demo -o jsonpath='{.data.password}' | base64 -d && echo
+NewPassword456!  # <-- Khóa đã tự động cập nhật thành công!
+```
 
 ---
 
@@ -304,4 +362,45 @@ Type        Resource  Min   Max      Default Request  Default Limit  Max Limit/R
 ----        --------  ---   ---      ---------------  -------------  -----------------------
 Container   cpu       10m   200m     50m              100m           -
 Container   memory    16Mi  128Mi    32Mi             64Mi           -
+```
+
+#### 5.5 Kiểm nghiệm tính năng Cô lập mạng & Phân quyền chéo (Isolation & Network Policy Tests)
+Thực hiện chạy các pod kiểm thử để xác minh tính độc lập và cô lập giữa `demo` và `payments` namespaces:
+
+```bash
+# ── TEST 1: Kiểm thử chặn INGRESS (Từ namespace demo không thể gọi tới service của payments) ──
+# Chạy một pod kiểm thử tạm thời trong namespace demo
+$ kubectl run curl-test --image=curlimages/curl -n demo --rm -i --tty -- sh
+If you don't see a command prompt, try pressing enter.
+/ $ curl -m 5 http://payments-api.payments.svc.cluster.local:8080
+curl: (28) Connection timed out after 5001 milliseconds   # <-- BỊ CHẶN! Kết nối quá hạn (Timeout) do NetworkPolicy chặn Ingress
+/ $ exit
+Session ended, Pod deleted
+
+
+# ── TEST 2: Kiểm thử chặn EGRESS (Từ namespace payments không thể truy cập internet) ──
+# Chạy một pod kiểm thử tạm thời trong namespace payments
+$ kubectl run curl-egress --image=curlimages/curl -n payments --rm -i --tty -- sh
+If you don't see a command prompt, try pressing enter.
+/ $ curl -m 5 https://google.com
+curl: (28) Connection timed out after 5002 milliseconds   # <-- BỊ CHẶN! Kết nối quá hạn (Timeout) do NetworkPolicy chặn Egress ra Internet
+/ $ exit
+Session ended, Pod deleted
+
+
+# ── TEST 3: Kiểm thử phân quyền chéo của user payments-dev ──
+
+# 1. Xác nhận user payments-dev có toàn quyền get/create workload trong namespace payments của mình
+$ kubectl auth can-i get pods -n payments --as=payments-dev
+yes
+$ kubectl auth can-i create deployments -n payments --as=payments-dev
+yes
+
+# 2. Xác nhận user payments-dev BỊ CHẶN khi cố gắng xem/thao tác các thông tin nhạy cảm (như Secrets)
+$ kubectl auth can-i get secrets -n payments --as=payments-dev
+no
+
+# 3. Xác nhận user payments-dev BỊ CHẶN TUYỆT ĐỐI khi cố thao tác chéo sang namespace demo
+$ kubectl auth can-i get pods -n demo --as=payments-dev
+no
 ```
