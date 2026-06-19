@@ -12,7 +12,12 @@ Tài liệu này hướng dẫn bạn cấu trúc bài thuyết trình cho Mento
     *   *Tác dụng*: Việc chỉ định `namespace: demo` đảm bảo các ứng dụng thông thường của nhà phát triển (như API, Database) được gom nhóm lại một nơi để dễ quản lý, tránh việc ảnh hưởng hay xung đột tài nguyên với các phòng ban/dự án khác (như `payments` hay `monitoring`).
 *   **`namespace: monitoring`**: Phòng điều khiển trung tâm chứa Prometheus, Grafana, Alertmanager để giám sát toàn bộ cluster.
 *   **`namespace: payments`**: Căn phòng bảo mật cao dành riêng cho ứng dụng tài chính nhạy cảm, được cách ly hoàn toàn.
-*   **`sync-wave`**: Thứ tự triển khai các ứng dụng của ArgoCD (giá trị nhỏ chạy trước, giá trị lớn chạy sau). Ví dụ: Wave `-1` cài đặt ESO Operator, Wave `3` mới deploy cấu hình SecretStore.
+*   **`sync-wave`**: 
+    *   *Ý nghĩa*: Thứ tự triển khai các ứng dụng của ArgoCD (giá trị nhỏ chạy trước, giá trị lớn chạy sau). Ví dụ: Wave `-1` cài đặt ESO Operator, Wave `3` mới deploy cấu hình SecretStore.
+    *   *Quy tắc đặt tên cách quãng (như -10, -5, -1, 3, 5)*:
+        *   **Dễ dàng mở rộng**: Giúp tự do chèn thêm các bước trung gian (như `-9`, `-8`, `-7`) sau này nếu hệ thống phình to, mà không cần chỉnh sửa chỉ số wave của các ứng dụng khác. (Nếu đặt liền kề `-10` và `-9`, bạn không còn khoảng trống số nguyên nào để chèn vào giữa).
+        *   **Phân nhóm lớp kiến trúc**: Giúp dễ dàng nhận diện ứng dụng thuộc lớp nào (đầu `-10` cho Operators/Controllers, đầu `-5` cho Templates/CRDs, đầu `0` cho các Platform Service, đầu `5` cho Workloads/Applications).
+        *   *Tương tự*: Đánh số dòng trong lập trình BASIC cổ điển (dòng `10`, `20`, `30`) để chèn dòng `15`, `25` khi cần.
 
 ---
 
