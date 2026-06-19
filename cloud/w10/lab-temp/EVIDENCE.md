@@ -1,6 +1,18 @@
-# BÁO CÁO NGHIỆM THU (EVIDENCE REPORT)
-## ĐỀ BÀI: W10 Lab — Security GitOps & Namespace Isolation (Payments)
+# 🚀 LAB W10 — Security GitOps & Namespace Isolation (Payments)
+## DevSecOps Platform ➔ OPA Gatekeeper ➔ Cosign Signature ➔ AWS Secrets Manager (ESO) ➔ Namespace Isolation
 
+[![Terraform](https://img.shields.io/badge/Terraform-1.5%2B-844FBA?logo=terraform&style=flat-square)](#)
+[![Kubernetes](https://img.shields.io/badge/Kubernetes-Minikube-326CE5?logo=kubernetes&style=flat-square)](#)
+[![AWS Secrets Manager](https://img.shields.io/badge/AWS-Secrets%20Manager-FF9900?logo=amazon-aws&style=flat-square)](#)
+[![ArgoCD](https://img.shields.io/badge/GitOps-ArgoCD-F3C63F?logo=argo&style=flat-square)](#)
+[![OPA Gatekeeper](https://img.shields.io/badge/Security-OPA%20Gatekeeper-E11F26?logo=open-policy-agent&style=flat-square)](#)
+[![Cosign](https://img.shields.io/badge/Signature-Cosign%20%2F%20Sigstore-4F46E5?logo=sigstore&style=flat-square)](#)
+
+---
+
+# BÁO CÁO NGHIỆM THU (EVIDENCE REPORT)
+
+### THÔNG TIN HỌC VIÊN
 * **Học viên:** Nguyễn Đình Thi
 * **Mã học viên:** XB-DN26-103
 * **Chương trình:** X-BRAIN CDO-09 | Tuần W10
@@ -37,7 +49,7 @@
                        │ ┌───────────────────────────┐ │
                        │ │   demo (API Rollout)      │ │
                        │ ├───────────────────────────┤ │
-                       │ │   payments (Cô lập hoàn toà│ │
+                       │ │   payments (Cô lập hoàn to│ │
                        │ ├───────────────────────────┤ │
                        │ │   monitoring (Alerts stack│ │
                        │ └───────────────────────────┘ │
@@ -60,13 +72,13 @@ Dưới đây là bảng đối chiếu các yêu cầu bắt buộc của đề
 | STT | Yêu cầu bắt buộc của Đề bài | Trạng thái | Giải pháp kỹ thuật thực tế |
 | :--- | :--- | :---: | :--- |
 | **1** | **Mọi cấu hình qua Git → ArgoCD** | **ĐẠT** | Toàn bộ tài nguyên quản lý bằng GitOps thông qua App-of-Apps (root app quản lý 16 child apps). |
-| **2** | **Lab 1.1: Phân quyền RBAC tối thiểu** | **ĐẠT** | Thiết lập Role `developer` trong namespace `demo` cho User `alice`, giới hạn nghiêm ngặt phạm vi truy cập (không xem secrets, không xem nodes). |
+| **2** | **Lab 1.1: Phân quyền RBAC tối thiểu** | **ĐẠT** | Thiết lập Role `developer` trong namespace `demo` cho User `alice`, giới hạn nghiêm ngặt phạm vi truy cập. |
 | **3** | **Lab 1.2: Áp dụng Gatekeeper Guardrails** | **ĐẠT** | Ràng buộc chặt chẽ 4 quy tắc cơ bản: không chạy `latest` tag, không chạy dưới quyền `root`, bắt buộc có CPU/Memory limits, cấm `hostNetwork`. |
 | **4** | **Lab 1.3: Custom Policy (allowed-registry)** | **ĐẠT** | Tạo constraint template và constraint chỉ cho phép các container images có nguồn từ `ghcr.io/x-brain-cdo-09/*`. |
-| **5** | **Lab 2.1: Đồng bộ Secret từ AWS qua ESO** | **ĐẠT** | Tích hợp ESO kết nối tới AWS Secrets Manager ở region `ap-southeast-1` thông qua `aws-creds`. Tránh việc lưu trữ mật khẩu plaintext lên Git. |
-| **6** | **Lab 2.2: Quét Trivy & Ký ảnh Cosign** | **ĐẠT** | CI pipeline tự động quét lỗ hổng Trivy (chỉ cho phép merge khi không có lỗi Critical/High), sau đó dùng Cosign ký ảnh số hóa. Enforce bằng `ClusterImagePolicy`. |
-| **7** | **Lab 2.3: SMTP Alertmanager tích hợp ESO** | **ĐẠT** | Lấy mật khẩu Gmail App Password từ AWS Secrets Manager, đồng bộ bảo mật qua ESO để cung cấp cho SMTP Alertmanager gửi cảnh báo qua Email. |
-| **8** | **Challenge: Tách biệt hoàn toàn Payments** | **ĐẠT** | Tạo namespace `payments`. Sử dụng `ResourceQuota`, `LimitRange`, và `NetworkPolicy` để đảm bảo cô lập hoàn toàn tài nguyên và mạng lưới. |
+| **5** | **Lab 2.1: Đồng bộ Secret từ AWS qua ESO** | **ĐẠT** | Tích hợp ESO kết nối tới AWS Secrets Manager ở region `ap-southeast-1` thông qua `aws-creds`. |
+| **6** | **Lab 2.2: Quét Trivy & Ký ảnh Cosign** | **ĐẠT** | CI pipeline tự động quét lỗ hổng Trivy, sau đó dùng Cosign ký ảnh số hóa. Enforce bằng `ClusterImagePolicy`. |
+| **7** | **Lab 2.3: SMTP Alertmanager tích hợp ESO** | **ĐẠT** | Lấy mật khẩu Gmail App Password từ AWS Secrets Manager, đồng bộ bảo mật qua ESO để cung cấp cho SMTP Alertmanager gửi email cảnh báo. |
+| **8** | **Challenge: Tách biệt hoàn toàn Payments** | **ĐẠT** | Tạo namespace `payments`. Sử dụng `ResourceQuota`, `LimitRange`, `NetworkPolicy`, và tách file `role`/`rolebinding` để cô lập tối đa. |
 
 ---
 
@@ -76,21 +88,20 @@ Dưới đây là bảng đối chiếu các yêu cầu bắt buộc của đề
 RBAC được thiết kế đảm bảo các nhà phát triển (ví dụ: `alice`) chỉ có quyền quản lý các tài nguyên workload cơ bản (Deployments, Pods, Services, Rollouts) trong namespace được giao (`demo`). Quyền truy cập các thông tin nhạy cảm như Kubernetes Secrets hay tài nguyên cấp cụm (Nodes, ClusterRoles) hoàn toàn bị chặn.
 
 ### 2. Tự động kiểm soát chính sách (Admission Guardrails)
-Sử dụng **OPA Gatekeeper** hoạt động như một Admission Webhook. Mọi yêu cầu tạo mới hoặc chỉnh sửa workload không thỏa mãn 5 luật bảo mật đều bị chặn ngay ở cấp API Server. Điều này ngăn ngừa hoàn toàn các lỗi vô tình của con người trong quá trình vận hành.
+Sử dụng **OPA Gatekeeper** hoạt động như một Admission Webhook. Mọi yêu cầu tạo mới hoặc chỉnh sửa workload không thỏa mãn các luật bảo mật đều bị chặn ngay ở cấp API Server. Điều này ngăn ngừa hoàn toàn các lỗi vô tình của con người trong quá trình vận hành.
 
-### 3. Tích hợp SecOps qua AWS Secrets Manager và ESO
-Thay vì lưu trữ thông tin nhạy cảm (như mật khẩu DB hay Gmail SMTP) trực tiếp trên Git hay tạo thủ công, chúng ta lưu tập trung trên **AWS Secrets Manager**. 
-*   **ESO (External Secrets Operator)** đóng vai trò cầu nối, tự động định kỳ kéo (pull) secrets về cụm và khởi tạo Kubernetes Secret.
-*   Thông tin xác thực AWS của ESO được cấu hình tách biệt qua Kubernetes Secret `aws-creds` sử dụng IAM Credentials, đảm bảo tính bảo mật và dễ quản lý.
+### 3. Phân biệt OPA Gatekeeper: Templates vs Constraints
+Để hệ thống linh hoạt và tái sử dụng tốt, chính sách Gatekeeper được cấu trúc thành:
+*   **ConstraintTemplates (`ct-*.yaml`):** Đóng vai trò như các Class định nghĩa logic kiểm tra bằng ngôn ngữ Rego và quy chuẩn schema cho tham số đầu vào.
+*   **Constraints (`c-*.yaml`):** Đóng vai trò như các Object cụ thể, sử dụng template, truyền vào các giá trị thực tế (ví dụ: `allowedRegistry: "ghcr.io/x-brain-cdo-09/"`) và xác định phạm vi áp dụng (miễn trừ `kube-system`, `argocd`,...).
 
-### 4. Supply Chain Security (Trivy + Cosign)
+### 4. Tích hợp SecOps qua AWS Secrets Manager và ESO
+Thay vì lưu trữ thông tin nhạy cảm (như mật khẩu DB hay Gmail SMTP) trực tiếp trên Git, chúng ta lưu tập trung trên **AWS Secrets Manager**.
+*   **ESO (External Secrets Operator)** tự động định kỳ kết nối kéo (pull) secrets về cụm Kubernetes và chuyển thành Kubernetes Secret cục bộ.
+*   Thông tin xác thực AWS của ESO được cấu hình tách biệt qua Kubernetes Secret `aws-creds` sử dụng IAM Credentials, đảm bảo tính bảo mật.
+
+### 5. Supply Chain Security (Trivy + Cosign)
 Bảo đảm không chạy mã độc hoặc image không rõ nguồn gốc trong cụm. Pipeline GitHub Actions kiểm tra tính an toàn của mã nguồn trước khi xuất bản, và ký số lên container image. Controller `cosign-policy-controller` trên Kubernetes sẽ từ chối chạy bất kỳ container nào có chữ ký không khớp với khóa công khai chỉ định trong `ClusterImagePolicy`.
-
-### 5. Multi-tenancy Isolation (Payments Tenant)
-Để tách biệt hoàn toàn ứng dụng `payments` khỏi namespace `demo`:
-*   **ResourceQuota** giới hạn tổng lượng tài nguyên tối đa để ngăn "Noisy Neighbor" (một ứng dụng chiếm hết tài nguyên của cụm).
-*   **LimitRange** áp đặt các ngưỡng CPU/Memory mặc định cho từng container.
-*   **NetworkPolicy** ngăn chặn mọi kết nối vào (ingress) từ bên ngoài namespace `payments`, chỉ cho phép DNS lookup và kết nối nội bộ.
 
 ---
 
@@ -98,7 +109,7 @@ Bảo đảm không chạy mã độc hoặc image không rõ nguồn gốc tron
 
 ### PHẦN 1 — GitOps & ArgoCD App-of-Apps
 
-#### 1.1 Trạng thái đồng bộ của ArgoCD Dashboard
+#### 1.1 Giao diện ArgoCD Dashboard
 Toàn bộ các ứng dụng được phân phối và tự động đồng bộ theo đúng sync-wave, đảm bảo không xảy ra race condition.
 
 ![SS-01: Giao diện ArgoCD Dashboard hiển thị 16 applications - tất cả Synced và Healthy](assets/SS-01.png)
@@ -147,7 +158,7 @@ no
 ```
 
 #### 2.2 Kiểm tra hoạt động của OPA Gatekeeper Admission Control
-Thử nghiệm chạy một Pod thiếu cấu hình giới hạn tài nguyên và sử dụng image từ Docker Hub không được phép:
+Thử nghiệm chạy một Pod thiếu giới hạn tài nguyên và sử dụng image từ Docker Hub không được phép:
 ```bash
 $ kubectl run test-unsigned --image=nginx:1.25 -n demo
 ```
@@ -220,7 +231,14 @@ spec:
 
 ---
 
-### PHẦN 5 — Challenge: Namespace Isolation (Payments Tenant)
+> [!IMPORTANT]
+> ### PHẦN 5 — Challenge: Namespace Isolation (Payments Tenant)
+> 
+> Nhằm cô lập tuyệt đối Tenant Payments (Team B) khỏi namespace `demo` (Team A) và đảm bảo an toàn vận hành đa người dùng (Multi-tenancy), chúng ta đã triển khai thành công mô hình cô lập toàn diện bao gồm:
+> 
+> * **Cô lập mạng lưới:** Chặn toàn bộ kết nối bên ngoài đi vào, chỉ cho phép giao tiếp nội bộ và kết nối ra DNS Server.
+> * **Cô lập tài nguyên:** Đảm bảo tài nguyên phần cứng (CPU/Memory) được kiểm soát nghiêm ngặt, tránh thất thoát hoặc tranh chấp.
+> * **Cô lập phân quyền:** Tách biệt hoàn toàn file `Role` và `RoleBinding` để phân quyền tối giản cho nhà phát triển của Tenant Payments.
 
 #### 5.1 Workloads chạy độc lập trong namespace `payments`
 ```bash
@@ -231,6 +249,7 @@ payments-api-7ffff4757c-kl2f5   1/1     Running   0          52m   10.244.0.36  
 ```
 
 #### 5.2 Network Policies cô lập mạng lưới
+Chặn đứng mọi truy cập Ingress vào Namespace, thiết lập quy chuẩn Egress tối thiểu.
 ```bash
 $ kubectl get networkpolicies -n payments
 NAME                           POD-SELECTOR   AGE
@@ -238,14 +257,46 @@ allow-same-ns-egress-and-dns   <none>         60m
 deny-all-ingress               <none>         60m
 ```
 
-#### 5.3 Cấu hình giới hạn tài nguyên đa người dùng (ResourceQuota & LimitRange)
+#### 5.3 Phân quyền tối giản cô lập (Tách biệt Role & RoleBinding)
+Đảm bảo user `payments-dev` chỉ có quyền thao tác trong phạm vi namespace `payments` của mình và không xem được thông tin nhạy cảm.
+*   **Role định nghĩa quyền hạn ([role.yaml](tenants/payments/role.yaml)):**
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: payments-dev-role
+  namespace: payments
+rules:
+- apiGroups: ["", "apps", "networking.k8s.io"]
+  resources: ["pods", "pods/log", "pods/exec", "services", "deployments", "replicasets", "statefulsets", "daemonsets", "ingresses"]
+  verbs: ["*"]
+```
+*   **RoleBinding liên kết user ([rolebinding.yaml](tenants/payments/rolebinding.yaml)):**
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: payments-dev-rolebinding
+  namespace: payments
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: payments-dev-role
+subjects:
+- kind: User
+  name: payments-dev
+  apiGroup: rbac.authorization.k8s.io
+```
+
+#### 5.4 Cấu hình giới hạn tài nguyên đa người dùng (ResourceQuota & LimitRange)
+*   **ResourceQuota khống chế tổng tài nguyên tối đa:**
 ```bash
-# 1. ResourceQuota khống chế tổng tài nguyên
 $ kubectl get resourcequota payments-quota -n payments
 NAME                           REQUEST                                                LIMIT
 resourcequota/payments-quota   requests.cpu: 100m/200m, requests.memory: 64Mi/128Mi   limits.cpu: 200m/500m, limits.memory: 128Mi/256Mi
-
-# 2. LimitRange áp đặt giới hạn CPU/Memory mặc định cho container
+```
+*   **LimitRange áp đặt giới hạn CPU/Memory mặc định cho container:**
+```bash
 $ kubectl describe limitrange payments-limitrange -n payments
 Name:       payments-limitrange
 Namespace:  payments
